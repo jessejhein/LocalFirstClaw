@@ -1,0 +1,22 @@
+[project]
+name = "agentinterface"
+version = "0.1.0"
+description = "Pydantic-based agent interface with LiteLLM integration"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "litellm>=1.40.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.11.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
