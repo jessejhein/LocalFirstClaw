@@ -1,6 +1,13 @@
 [tool.uv.workspace]
 members = ["packages/*"]
 
+[tool.uv.sources]
+agentinterface = { workspace = true }
+gateway = { workspace = true }
+hypothalamus = { workspace = true }
+journal = { workspace = true }
+tools = { workspace = true }
+
 [project]
 name = "localfirstclaw"
 version = "0.1.0"
