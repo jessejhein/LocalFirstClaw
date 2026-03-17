@@ -85,16 +85,18 @@ Use the config tree for human-edited, git-trackable files. Use the data tree for
 ## Getting Started
 
 1. Create the project environment with `uv sync`.
-2. Create the external config repo under `~/.config/LocalFirstClaw`.
-3. Create the external data directories under `~/.local/share/LocalFirstClaw`.
-4. Add `agents.yaml`, `channels.yaml`, `endpoints.yaml`, and `models.yaml` under the config root.
-5. Set any required provider API keys in your shell environment.
+2. Run project commands from the repo checkout with either `source .venv/bin/activate` or `.venv/bin/localfirstclaw ...`.
+   If you are outside the repo, use `uv run --directory /home/openclaw/Projects/LocalFirstClaw localfirstclaw ...`.
+3. Create the external config repo under `~/.config/LocalFirstClaw`.
+4. Create the external data directories under `~/.local/share/LocalFirstClaw`.
+5. Add `agents.yaml`, `channels.yaml`, `endpoints.yaml`, and `models.yaml` under the config root.
+6. Set any required provider API keys in your shell environment.
    You can also place them in `~/.config/LocalFirstClaw/.env`.
-6. Run `localfirstclaw validate-setup` to confirm the config is loadable.
-7. Run `localfirstclaw check-provider chutes` to confirm Chutes is reachable without using completion tokens.
-8. Run `localfirstclaw describe-plugin telegram` when the setup agent needs Telegram-specific configuration guidance.
-9. See [telegram.md](/home/openclaw/Projects/LocalFirstClaw/docs/telegram.md) for BotFather setup and endpoint binding examples.
-10. Use `localfirstclaw telegram-discover` and `localfirstclaw telegram-bind` to connect a real Telegram chat without hand-editing `endpoints.yaml`.
+7. Run `.venv/bin/localfirstclaw validate-setup` to confirm the config is loadable.
+8. Run `.venv/bin/localfirstclaw check-provider chutes` to confirm Chutes is reachable without using completion tokens.
+9. Run `.venv/bin/localfirstclaw describe-plugin telegram` when the setup agent needs Telegram-specific configuration guidance.
+10. See [telegram.md](/home/openclaw/Projects/LocalFirstClaw/docs/telegram.md) for BotFather setup and endpoint binding examples.
+11. Use `.venv/bin/localfirstclaw telegram-discover` and `.venv/bin/localfirstclaw telegram-bind` to connect a real Telegram chat without hand-editing `endpoints.yaml`.
 
 See [SETUP.md](/home/openclaw/Projects/LocalFirstClaw/SETUP.md) for the full setup sequence, [configuration.md](/home/openclaw/Projects/LocalFirstClaw/docs/configuration.md) for the current file formats, and [examples/config/LocalFirstClaw](/home/openclaw/Projects/LocalFirstClaw/examples/config/LocalFirstClaw) for starter templates.
 

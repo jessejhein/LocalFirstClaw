@@ -4,6 +4,35 @@ This document explains how to prepare the current LocalFirstClaw codebase for a 
 
 It documents the system as it exists now, not the eventual MVP. At the moment, the codebase has a working journal, gateway, agentinterface, TUI package, XDG-style config loading, and LiteLLM-backed model client support. It does not yet have a polished standalone runner, Telegram transport, or always-on supervisor process.
 
+## How To Run Commands
+
+LocalFirstClaw commands are currently provided by the project virtualenv. They are not installed globally.
+
+Use one of these patterns:
+
+1. Activate the project virtualenv from the source checkout:
+
+```bash
+cd /home/openclaw/Projects/LocalFirstClaw
+source .venv/bin/activate
+localfirstclaw validate-setup
+```
+
+2. Run the command explicitly through the project venv:
+
+```bash
+cd /home/openclaw/Projects/LocalFirstClaw
+.venv/bin/localfirstclaw validate-setup
+```
+
+3. If you are not in the repo checkout, run through `uv` with an explicit project directory:
+
+```bash
+uv run --directory /home/openclaw/Projects/LocalFirstClaw localfirstclaw validate-setup
+```
+
+If a setup agent is unsure which shell context it has, use option 2 or 3 instead of assuming `localfirstclaw` is on `PATH`.
+
 ## What Setup Means Today
 
 A successful setup today means:
@@ -148,7 +177,7 @@ Naming rule:
 This checks config loading, data directories, and required environment variables.
 
 ```bash
-localfirstclaw validate-setup
+.venv/bin/localfirstclaw validate-setup
 ```
 
 If that reports `Setup validation passed.`, the current bootstrap layer is loadable.
@@ -158,7 +187,7 @@ If that reports `Setup validation passed.`, the current bootstrap layer is loada
 This validates that Chutes is reachable and the API key works by hitting the provider metadata endpoint instead of a completion endpoint.
 
 ```bash
-localfirstclaw check-provider chutes
+.venv/bin/localfirstclaw check-provider chutes
 ```
 
 This should be safe to run frequently because it checks the model catalog, not a chat completion.
@@ -218,28 +247,40 @@ These are not setup mistakes. They are current implementation limits:
 
 ## CLI Commands Added For Setup
 
-- `localfirstclaw validate-setup`
+- `.venv/bin/localfirstclaw validate-setup`
   Validates config files, data directories, and required environment variables.
-- `localfirstclaw validate-setup --check-providers`
+- `.venv/bin/localfirstclaw validate-setup --check-providers`
   Also calls provider metadata endpoints. This should not use completion tokens.
-- `localfirstclaw check-provider chutes`
+- `.venv/bin/localfirstclaw check-provider chutes`
   Performs a zero-token Chutes reachability check against the `/models` endpoint.
-- `localfirstclaw describe-plugin telegram`
+- `.venv/bin/localfirstclaw describe-plugin telegram`
   Prints the Telegram plugin manifest and config field descriptions.
-- `localfirstclaw plugin-skill telegram`
+- `.venv/bin/localfirstclaw plugin-skill telegram`
   Prints the Telegram plugin's setup and maintenance guidance on demand.
-- `localfirstclaw telegram-discover`
+- `.venv/bin/localfirstclaw telegram-discover`
   Polls Telegram once and lists candidate `chat:` or `thread:` bindings.
-- `localfirstclaw telegram-bind ...`
+- `.venv/bin/localfirstclaw telegram-bind ...`
   Writes a Telegram endpoint entry into `endpoints.yaml`.
-- `localfirstclaw telegram-onboard ...`
+- `.venv/bin/localfirstclaw telegram-onboard ...`
   Shows discovered bindings and then writes the selected endpoint config. If exactly one binding was discovered, it can bind automatically without an explicit `--binding`.
-- `localfirstclaw run-telegram --once`
+- `.venv/bin/localfirstclaw run-telegram --once`
   Polls Telegram once and routes any matching updates through the gateway.
-- `localfirstclaw run-telegram`
+- `.venv/bin/localfirstclaw run-telegram`
   Runs the Telegram polling loop continuously.
 
 These commands load fallback secrets from `~/.config/LocalFirstClaw/.env`, so they do not require you to pre-source the shell every time.
+
+## Telegram Setup Questions
+
+When another agent is walking a user through Telegram onboarding, it should not stop after the token is present. It should explicitly ask:
+
+1. Do you already have a BotFather bot token, or do you need BotFather setup steps?
+2. Have you already sent at least one message to the bot from the Telegram chat or thread you want to bind?
+3. Which channel should this Telegram endpoint map to first, usually `main`?
+4. Should this endpoint allow `@channel` switching, or should it stay fixed to one channel?
+5. After binding, should the agent run one polling pass with `.venv/bin/localfirstclaw run-telegram --once`, or start the continuous runner?
+
+If the user has not yet messaged the bot, the setup agent should pause and ask them to do that before running discovery.
 
 ## Source Of Truth
 
