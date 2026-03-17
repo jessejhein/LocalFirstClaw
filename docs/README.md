@@ -8,6 +8,7 @@ This directory is the working documentation set for the codebase.
 - `configuration.md` - External config/data layout and YAML file formats.
 - `gateway.md` - Gateway routing model, commands, and API surface.
 - `journal.md` - Public API and behavior for the journal package.
+- `provider-chutes.md` - Chutes API notes, model discovery, and current model recommendations.
 - `tui.md` - Local terminal interface behavior and rendering rules.
 - `implementation-status.md` - What exists now and what should come next.
 - `decisions/0001-journal-foundation.md` - Why the project starts with the journal package.
