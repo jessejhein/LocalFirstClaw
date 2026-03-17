@@ -94,6 +94,7 @@ Behavior:
 - gateway parses commands first
 - then bare `@channel` switching
 - otherwise routes text to the current active channel
+- when an agent executor is configured, plain routed messages invoke the target agent and return an agent reply result
 
 ### `GET /endpoints/{endpoint_id}`
 
@@ -118,6 +119,7 @@ Current event types:
 - `gateway.command_executed`
 - `gateway.command_rejected`
 - `gateway.message_routed`
+- `gateway.agent_responded`
 
 Common tags:
 
@@ -143,16 +145,16 @@ Current note:
 
 ## What This Slice Does Not Do Yet
 
-- real Telegram, Discord, TUI, or Web UI adapters
+- real remote transport adapters
 - persistent endpoint/channel config loading
 - multi-endpoint fanout delivery
-- agent execution or LLM integration
 - channel membership history beyond current runtime state and journal events
 - script-driven reset helpers
+- resilient error handling around live agent execution
 
 ## Intended Next Work
 
 - move endpoint and channel configuration into persistent config files
-- connect one real interface adapter
-- add agent execution on routed messages
+- connect real remote interface adapters
+- add failure handling around agent execution
 - expose richer gateway inspection and control commands

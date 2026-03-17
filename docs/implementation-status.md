@@ -16,11 +16,14 @@ Implemented:
 - endpoint active-channel switching using bare `@channel`
 - minimal FastAPI shell for message ingress and endpoint state
 - gateway journaling for inbound messages, command execution, command rejection, channel switches, and routed messages
+- gateway integration that invokes agent execution for plain routed messages
 - test coverage for the gateway public behavior
 - `agentinterface` typed execution contract for named agents
 - pluggable model client protocol and structured model result
 - journaled agent run start, completion, and failure events
 - test coverage for the agentinterface public behavior
+- `tui` local line-oriented terminal session over the gateway
+- test coverage for the tui public behavior
 
 Not implemented yet:
 
@@ -31,7 +34,8 @@ Not implemented yet:
 - provider fallback routing
 - real transport adapters
 - persistent gateway config loading
-- agent execution behind routed gateway messages
+- real LiteLLM-backed model execution
+- richer terminal UI behavior
 
 ## Immediate Next Step
 
@@ -39,9 +43,9 @@ Build the next package or runtime feature on top of the journal and gateway rath
 
 Recommended order:
 
-1. Connect gateway routing to `agentinterface.run()`.
-2. Move endpoint/channel and agent definitions into persistent config.
-3. Add a real LiteLLM-backed model client.
+1. Move endpoint/channel and agent definitions into persistent config.
+2. Add a real LiteLLM-backed model client.
+3. Extend the TUI or add Telegram as the next transport.
 
 ## Constraints To Preserve
 
@@ -54,3 +58,4 @@ Recommended order:
 - Preserve endpoint primary channel versus active channel semantics.
 - Keep transport endpoints distinct from internal channels.
 - Keep agent execution behind the typed request/response boundary.
+- Keep TUI input flowing through gateway rather than adding a side path.

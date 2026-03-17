@@ -122,11 +122,10 @@ Lifecycle events currently use the request timestamp and a shared correlation id
 - tool calling
 - memory loading
 - prompt templating beyond a single system prompt
-- gateway integration that actually invokes `AgentInterface`
+- persistent agent config loading
 
 ## Intended Next Work
 
-- connect gateway-routed messages to `AgentInterface.run()`
 - move agent definitions into persistent config
 - add a real LiteLLM-backed `ModelClient`
 - journal richer usage metadata once a live backend is wired in

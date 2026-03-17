@@ -4,11 +4,12 @@ This document is the current implementation handoff for LocalFirstClaw. It is in
 
 ## Executive Summary
 
-LocalFirstClaw is still early-stage, but three real subsystems are now implemented:
+LocalFirstClaw is still early-stage, but four real subsystems are now implemented:
 
 - `journal`
 - the first `gateway` slice
 - the first `agentinterface` slice
+- the first `tui` slice
 
 The repo started as a multi-package Python workspace with plans and scaffolding only. The completed execution slices established:
 
@@ -17,9 +18,10 @@ The repo started as a multi-package Python workspace with plans and scaffolding 
 - a tested `journal` package
 - a tested in-memory `gateway` routing core with a minimal FastAPI shell
 - a tested `agentinterface` package with typed execution and journaling
+- a tested local `tui` package for end-to-end terminal interaction
 - initial documentation and a design record trail
 
-The next recommended slice is to connect gateway routing to `agentinterface` and then move persistent config in behind those contracts.
+The next recommended slice is to move persistent config in behind the current contracts and then add a real model backend or the Telegram transport.
 
 ## Current Repository State
 
@@ -29,14 +31,14 @@ Current branch:
 
 Recent commits, newest first:
 
+- `3b47b40` `Connect gateway routing to agent execution and tui`
+- `a097144` `Add gateway-agent and tui failing tests`
+- `1a9d6e8` `Document agent interface execution contract`
 - `6da32d1` `Implement journaled agent interface execution`
 - `4ba351a` `Add failing tests for agent interface execution`
+- `ad3359f` `Expand package docstrings for journal and gateway`
+- `1dcaa57` `Document gateway routing and updated project status`
 - `a8c2ed3` `Implement gateway channel routing core`
-- `fd13d9b` `Add gateway routing plan and failing tests`
-- `4f4e9fa` `Document journal APIs and initial design decisions`
-- `851ee2f` `Implement rotated JSONL journal package`
-- `f9c2c65` `Add failing tests for rotated journal behavior`
-- `e651c3e` `Fix uv workspace packaging and local environment setup`
 
 Worktree status at handoff time:
 
@@ -51,6 +53,7 @@ Top-level areas:
 - `packages/hypothalamus`
 - `packages/journal`
 - `packages/tools`
+- `packages/tui`
 - `docs`
 - `plans`
 
@@ -59,6 +62,7 @@ Implementation reality:
 - `journal` contains real code and tests
 - `gateway` contains real code and tests
 - `agentinterface` contains real code and tests
+- `tui` contains real code and tests
 - `hypothalamus` and `tools` are still scaffolds
 
 Important top-level files:
@@ -111,6 +115,8 @@ These decisions are settled unless there is a strong reason to reopen them:
 - use `!CMD` for gateway commands
 - reserve bare `@channel` for endpoint active-channel switching
 - keep endpoint primary channel separate from runtime active channel
+- keep agent execution behind the typed `AgentRequest`/`AgentResponse` boundary
+- keep TUI input flowing through gateway rather than adding a side path
 
 Decision records and design docs:
 
@@ -165,6 +171,15 @@ Implemented agentinterface package:
 Implemented agentinterface test file:
 
 - [packages/agentinterface/tests/test_agentinterface.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/tests/test_agentinterface.py)
+
+Implemented tui package:
+
+- [packages/tui/src/tui/__init__.py](/home/openclaw/Projects/LocalFirstClaw/packages/tui/src/tui/__init__.py)
+- [packages/tui/src/tui/tuisession.py](/home/openclaw/Projects/LocalFirstClaw/packages/tui/src/tui/tuisession.py)
+
+Implemented tui test file:
+
+- [packages/tui/tests/test_tui.py](/home/openclaw/Projects/LocalFirstClaw/packages/tui/tests/test_tui.py)
 
 ## Journal Package Contract
 
@@ -258,6 +273,7 @@ Current gateway semantics:
 - active channel defaults to primary channel
 - endpoints may allow or reject channel switching
 - channels have one default agent in v1
+- plain routed messages invoke the configured agent executor when one is present
 
 Current gateway syntax:
 
@@ -278,6 +294,7 @@ Current gateway event types:
 - `gateway.command_executed`
 - `gateway.command_rejected`
 - `gateway.message_routed`
+- `gateway.agent_responded`
 
 ## AgentInterface Package Contract
 
@@ -307,6 +324,20 @@ Current agentinterface event types:
 - `agentinterface.run_completed`
 - `agentinterface.run_failed`
 
+## TUI Package Contract
+
+TUI public API:
+
+- `TuiSession`
+
+Current tui semantics:
+
+- terminal input is always routed through `GatewayRouter.handle_message(...)`
+- gateway command results are rendered as gateway output
+- bare `@channel` switches are rendered as local status lines
+- agent replies are rendered as `[channel] agent: text`
+- the current implementation is line-oriented, not full-screen
+
 ## Verification Status
 
 These checks passed at the end of the implementation slices:
@@ -320,6 +351,9 @@ These checks passed at the end of the implementation slices:
 - `.venv/bin/pytest packages/agentinterface/tests/test_agentinterface.py -q`
 - `.venv/bin/ruff check packages/agentinterface/src packages/agentinterface/tests`
 - `.venv/bin/black --check packages/agentinterface/src packages/agentinterface/tests`
+- `.venv/bin/pytest packages/tui/tests/test_tui.py -q`
+- `.venv/bin/ruff check packages/tui/src packages/tui/tests`
+- `.venv/bin/black --check packages/tui/src packages/tui/tests`
 
 The journal tests currently cover:
 
@@ -337,6 +371,7 @@ The gateway tests currently cover:
 - endpoint primary channel defaults
 - bare `@channel` switching
 - routing plain text to the active channel
+- invoking the agent executor on plain messages
 - `!reset-channel`
 - `!send @channel ...`
 - `!who`
@@ -352,6 +387,12 @@ The agentinterface tests currently cover:
 - journaling failures and raising `AgentRunError`
 - async wrapper behavior
 
+The tui tests currently cover:
+
+- formatting plain agent replies
+- formatting channel switching
+- formatting gateway command output
+
 ## Documentation Already Written
 
 Main docs:
@@ -360,6 +401,7 @@ Main docs:
 - [docs/agentinterface.md](/home/openclaw/Projects/LocalFirstClaw/docs/agentinterface.md)
 - [docs/journal.md](/home/openclaw/Projects/LocalFirstClaw/docs/journal.md)
 - [docs/gateway.md](/home/openclaw/Projects/LocalFirstClaw/docs/gateway.md)
+- [docs/tui.md](/home/openclaw/Projects/LocalFirstClaw/docs/tui.md)
 - [docs/implementation-status.md](/home/openclaw/Projects/LocalFirstClaw/docs/implementation-status.md)
 - [docs/decisions/0001-journal-foundation.md](/home/openclaw/Projects/LocalFirstClaw/docs/decisions/0001-journal-foundation.md)
 
@@ -377,28 +419,29 @@ Still scaffold-only or absent:
 - indexed recall/review tools
 - cross-process write safety
 - provider fallback routing
-- real transport adapters
+- real remote transport adapters
 - persistent gateway config loading
-- gateway integration that actually invokes `agentinterface`
 - real LiteLLM-backed model execution
+- Telegram transport
+- richer TUI behavior
 
 ## Recommended Next Slice
 
 Recommended priority:
 
-1. connect routed gateway messages to `agentinterface.run()`
-2. move gateway endpoint/channel and agent definitions into persistent config
-3. add a real LiteLLM-backed `ModelClient`
+1. move gateway endpoint/channel and agent definitions into persistent config
+2. add a real LiteLLM-backed `ModelClient`
+3. add Telegram as the next real transport
 
 Preferred next target:
 
-- gateway-to-agentinterface integration if the goal is to reach the first end-to-end routed agent reply
-- persistent config if the goal is to lock user-facing routing and agent definitions before live execution
+- persistent config if the goal is to lock user-facing routing and agent definitions before wider transport rollout
+- LiteLLM model client if the goal is to replace fake execution with real model calls
 
 ## Suggested Execution Sequence For The Next Agent
 
 1. read [AGENTS.md](/home/openclaw/Projects/LocalFirstClaw/AGENTS.md), this file, and the docs under `docs/`
-2. inspect the current empty target package before designing changes
+2. inspect the current target package before designing changes
 3. write failing tests first
 4. commit the test-only change
 5. implement the minimal code to satisfy the tests
@@ -418,6 +461,7 @@ Preferred next target:
 - do not add retention/compression behavior to the journal unless that is the explicit task
 - keep endpoint state runtime-only unless the task explicitly adds persistent config handling
 - keep agent execution behind the typed `AgentRequest`/`AgentResponse` boundary
+- keep TUI input flowing through gateway rather than adding a side path
 - keep commit granularity aligned with the TDD flow in `AGENTS.md`
 
 ## If The Next Agent Needs To Recreate The Working Environment
@@ -434,4 +478,4 @@ Then use tools from `.venv/bin/`.
 
 ## Short Resume Prompt For Another Agent
 
-LocalFirstClaw is a multi-package Python workspace. `journal`, the first `gateway` slice, and the first `agentinterface` slice are implemented and tested. The journal is a daily-rotated, append-only JSONL store with structured events, deterministic time-filter queries, in-process thread safety, and async-compatible wrappers over the sync core. The gateway models interface endpoints, channels, endpoint active-channel switching with bare `@channel`, and gateway-owned `!CMD` commands. The agentinterface package provides a typed execution contract, agent registry lookup, pluggable model client protocol, and journaled run lifecycle. The next task should connect gateway routing to `AgentInterface.run()` or move the definitions into persistent config using TDD and commit-first workflow. Read `AGENTS.md`, `plans/CURRENT_HANDOFF.md`, and the docs under `docs/` before changing anything.
+LocalFirstClaw is a multi-package Python workspace. `journal`, the first `gateway` slice, the first `agentinterface` slice, and the first `tui` slice are implemented and tested. The journal is a daily-rotated, append-only JSONL store with structured events, deterministic time-filter queries, in-process thread safety, and async-compatible wrappers over the sync core. The gateway models interface endpoints, channels, endpoint active-channel switching with bare `@channel`, gateway-owned `!CMD` commands, and plain-message handoff to an agent executor. The agentinterface package provides a typed execution contract, agent registry lookup, pluggable model client protocol, and journaled run lifecycle. The TUI package provides a line-oriented local interface that routes all input through the gateway. The next task should add persistent config, a real LiteLLM-backed model client, or Telegram transport using TDD and commit-first workflow. Read `AGENTS.md`, `plans/CURRENT_HANDOFF.md`, and the docs under `docs/` before changing anything.
