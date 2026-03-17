@@ -53,7 +53,7 @@ def test_load_localfirstclaw_config_reads_agents_channels_endpoints_and_models(t
     (config_root / "agents.yaml").write_text(
         """
 agents:
-  - agent_id: main
+  - agent_id: coordinator
     model: kimi
     system_prompt: You are the main assistant.
   - agent_id: coder
@@ -66,7 +66,7 @@ agents:
         """
 channels:
   - channel_id: main
-    default_agent_id: main
+    default_agent_id: coordinator
   - channel_id: game
     default_agent_id: coder
 """.strip() + "\n",
@@ -97,7 +97,7 @@ aliases:
     config = load_localfirstclaw_config(config_root=config_root)
 
     assert isinstance(config, LocalFirstClawConfig)
-    assert set(config.agents.keys()) == {"main", "coder"}
+    assert set(config.agents.keys()) == {"coordinator", "coder"}
     assert set(config.channels.keys()) == {"main", "game"}
     assert set(config.endpoints.keys()) == {"tui-main"}
     assert config.model_aliases["kimi"].provider_model == "openai/kimi-k2"
@@ -118,7 +118,7 @@ def test_build_helpers_create_runtime_objects_from_loaded_config(tmp_path: Path)
     (app_paths.config_root / "agents.yaml").write_text(
         """
 agents:
-  - agent_id: main
+  - agent_id: coordinator
     model: kimi
     system_prompt: You are the main assistant.
 """.strip() + "\n",
@@ -128,7 +128,7 @@ agents:
         """
 channels:
   - channel_id: main
-    default_agent_id: main
+    default_agent_id: coordinator
 """.strip() + "\n",
         encoding="utf-8",
     )
@@ -163,3 +163,55 @@ aliases:
     assert isinstance(agent_interface, AgentInterface)
     assert isinstance(gateway_router, GatewayRouter)
     assert gateway_router.get_endpoint_status(endpoint_id="tui-main").active_channel_id == "main"
+
+
+def test_load_localfirstclaw_config_rejects_agent_and_channel_name_collisions(tmp_path: Path) -> None:
+    """Agent ids and channel ids must stay in separate namespaces."""
+    config_root = tmp_path / "config"
+    config_root.mkdir()
+    (config_root / "agents.yaml").write_text(
+        """
+agents:
+  - agent_id: main
+    model: kimi
+    system_prompt: You are the coordinator.
+""".strip() + "\n",
+        encoding="utf-8",
+    )
+    (config_root / "channels.yaml").write_text(
+        """
+channels:
+  - channel_id: main
+    default_agent_id: main
+""".strip() + "\n",
+        encoding="utf-8",
+    )
+    (config_root / "endpoints.yaml").write_text(
+        """
+endpoints:
+  - endpoint_id: tui-main
+    transport: tui
+    binding: session:main
+    primary_channel_id: main
+    allow_channel_switching: true
+""".strip() + "\n",
+        encoding="utf-8",
+    )
+    (config_root / "models.yaml").write_text(
+        """
+aliases:
+  kimi:
+    provider_model: openai/kimi-k2
+    api_base: https://llm.example.test/v1
+    api_key_env: CHUTES_API_KEY
+""".strip() + "\n",
+        encoding="utf-8",
+    )
+
+    try:
+        load_localfirstclaw_config(config_root=config_root)
+    except ValueError as error:
+        assert "must not overlap" in str(error)
+        assert "main" in str(error)
+    else:
+        raise AssertionError("expected config loader to reject overlapping agent and channel names")
