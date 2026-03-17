@@ -21,6 +21,7 @@ Current files and directories:
 - `channels.yaml`
 - `endpoints.yaml`
 - `models.yaml`
+- `.env`
 - `skills/`
 - `workspace/`
 
@@ -28,6 +29,7 @@ Recommended use:
 
 - keep prompts, plans, distilled memory, and curated notes in `workspace/`
 - keep provider and routing definitions in the YAML files
+- keep secrets in `.env`, not in YAML
 - keep plugin configuration in the config root
 
 ## Data Root
@@ -146,9 +148,15 @@ build_gateway_router(config=..., journal=..., agent_executor=...)
 Current behavior:
 
 - config is loaded from YAML under the config root
+- runtime secrets can be loaded from `<config_root>/.env`
 - journal writes go to the external data root
 - the default agent executor uses `LiteLLMModelClient`
 - model aliases are resolved before the LiteLLM call
+
+Environment precedence:
+
+1. already-exported shell environment
+2. fallback values from `<config_root>/.env`
 
 ## Setup Validation Commands
 

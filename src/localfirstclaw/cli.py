@@ -13,6 +13,7 @@ from tools import PluginRegistry, TelegramTransportPlugin
 from localfirstclaw.apppaths import AppPaths
 from localfirstclaw.bootstrap import build_agent_interface, build_gateway_router, build_journal
 from localfirstclaw.configloader import load_localfirstclaw_config
+from localfirstclaw.envloader import load_runtime_environment
 from localfirstclaw.providercheck import check_chutes_connectivity
 from localfirstclaw.setupvalidation import validate_setup
 
@@ -98,9 +99,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def _run_validate_setup(*, check_providers: bool) -> int:
     """Validate the current LocalFirstClaw setup and print a human-readable summary."""
+    app_paths = AppPaths.from_environment()
     result = validate_setup(
-        app_paths=AppPaths.from_environment(),
-        environment=os.environ,
+        app_paths=app_paths,
+        environment=load_runtime_environment(app_paths=app_paths, base_environment=os.environ),
         check_providers=check_providers,
     )
 
@@ -134,7 +136,9 @@ def _run_validate_setup(*, check_providers: bool) -> int:
 
 def _run_check_provider_chutes(*, api_base: str, api_key: str | None, api_key_env: str) -> int:
     """Run a zero-token Chutes metadata check and print the result."""
-    resolved_api_key = api_key or os.environ.get(api_key_env)
+    app_paths = AppPaths.from_environment()
+    environment = load_runtime_environment(app_paths=app_paths, base_environment=os.environ)
+    resolved_api_key = api_key or environment.get(api_key_env)
     if not resolved_api_key:
         print(f"Missing API key. Set {api_key_env} or pass --api-key.")
         return 1
@@ -180,15 +184,16 @@ def _build_plugin_registry() -> PluginRegistry:
 
 def _run_telegram(*, once: bool, bot_token: str | None, bot_token_env: str) -> int:
     """Run the Telegram transport using the current LocalFirstClaw config."""
-    resolved_bot_token = bot_token or os.environ.get(bot_token_env)
+    app_paths = AppPaths.from_environment()
+    environment = load_runtime_environment(app_paths=app_paths, base_environment=os.environ)
+    resolved_bot_token = bot_token or environment.get(bot_token_env)
     if not resolved_bot_token:
         print(f"Missing Telegram bot token. Set {bot_token_env} or pass --bot-token.")
         return 1
 
-    app_paths = AppPaths.from_environment()
     config = load_localfirstclaw_config(config_root=app_paths.config_root)
     journal = build_journal(app_paths=app_paths)
-    agent_interface = build_agent_interface(config=config, journal=journal)
+    agent_interface = build_agent_interface(config=config, journal=journal, environment=environment)
     router = build_gateway_router(config=config, journal=journal, agent_executor=agent_interface)
     runner = TelegramTransportRunner(
         router=router,

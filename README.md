@@ -89,6 +89,7 @@ Use the config tree for human-edited, git-trackable files. Use the data tree for
 3. Create the external data directories under `~/.local/share/LocalFirstClaw`.
 4. Add `agents.yaml`, `channels.yaml`, `endpoints.yaml`, and `models.yaml` under the config root.
 5. Set any required provider API keys in your shell environment.
+   You can also place them in `~/.config/LocalFirstClaw/.env`.
 6. Run `localfirstclaw validate-setup` to confirm the config is loadable.
 7. Run `localfirstclaw check-provider chutes` to confirm Chutes is reachable without using completion tokens.
 8. Run `localfirstclaw describe-plugin telegram` when the setup agent needs Telegram-specific configuration guidance.

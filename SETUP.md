@@ -113,7 +113,24 @@ You can edit those aliases if you want different models, but keep the provider m
 
 ## 5. Export Provider Credentials
 
-If your alias uses `api_key_env: CHUTES_API_KEY`, export that before trying the model client:
+LocalFirstClaw now supports a config-root `.env` file.
+
+Recommended location:
+
+- `~/.config/LocalFirstClaw/.env`
+
+Example:
+
+```bash
+cat > ~/.config/LocalFirstClaw/.env <<'EOF'
+CHUTES_API_KEY=your-real-key-here
+TELEGRAM_BOT_TOKEN=your-real-telegram-bot-token
+EOF
+```
+
+If your alias uses `api_key_env: CHUTES_API_KEY`, that `.env` file is enough for LocalFirstClaw commands.
+
+Shell exports are still allowed and take precedence. For example:
 
 ```bash
 export CHUTES_API_KEY=your-real-key-here
@@ -217,6 +234,8 @@ These are not setup mistakes. They are current implementation limits:
   Polls Telegram once and routes any matching updates through the gateway.
 - `localfirstclaw run-telegram`
   Runs the Telegram polling loop continuously.
+
+These commands load fallback secrets from `~/.config/LocalFirstClaw/.env`, so they do not require you to pre-source the shell every time.
 
 ## Source Of Truth
 

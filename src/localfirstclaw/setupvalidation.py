@@ -3,13 +3,13 @@
 
 from __future__ import annotations
 
-import os
 import urllib.request
 from dataclasses import dataclass, field
 from typing import Callable, Mapping
 
 from localfirstclaw.apppaths import AppPaths
 from localfirstclaw.configloader import load_localfirstclaw_config
+from localfirstclaw.envloader import load_runtime_environment
 from localfirstclaw.providercheck import ProviderCheckResult, check_chutes_connectivity
 
 
@@ -49,7 +49,7 @@ def validate_setup(
     Returns:
         Structured validation result suitable for CLI display or automation.
     """
-    env = dict(os.environ if environment is None else environment)
+    env = load_runtime_environment(app_paths=app_paths, base_environment=environment)
     missing_config_files = _find_missing_config_files(app_paths=app_paths)
     missing_data_directories = _find_missing_data_directories(app_paths=app_paths)
 

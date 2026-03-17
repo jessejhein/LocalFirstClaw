@@ -32,13 +32,17 @@ localfirstclaw run-telegram
    - bot display name
    - bot username
 5. Copy the bot token BotFather returns.
-6. Export the token in your shell:
+6. Store the token in `~/.config/LocalFirstClaw/.env`:
 
 ```bash
-export TELEGRAM_BOT_TOKEN=your-real-bot-token
+cat >> ~/.config/LocalFirstClaw/.env <<'EOF'
+TELEGRAM_BOT_TOKEN=your-real-bot-token
+EOF
 ```
 
-If you regenerate the token later with BotFather, update the environment variable source before restarting the Telegram runner.
+Shell exports are also allowed, but the config-root `.env` file is the preferred setup path.
+
+If you regenerate the token later with BotFather, update the `.env` file or shell environment before restarting the Telegram runner.
 
 ## First Connection Flow
 
