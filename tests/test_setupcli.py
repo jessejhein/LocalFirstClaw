@@ -419,6 +419,66 @@ def test_cli_telegram_discover_lists_bindings_from_updates(capsys, monkeypatch) 
     assert "thread:-100200300400:77" in captured.out
 
 
+def test_cli_telegram_discover_shows_troubleshooting_when_no_updates(capsys, monkeypatch) -> None:
+    """The discover command should print actionable Telegram diagnostics when no bindings are found."""
+
+    class FakeTelegramApiClient:
+        """Fake client that reports a valid bot but no pending updates."""
+
+        def get_updates(self, *, offset, timeout_seconds):
+            del offset, timeout_seconds
+            return []
+
+        def get_me(self):
+            return {"ok": True, "result": {"username": "localfirstclaw_bot"}}
+
+        def get_webhook_info(self):
+            return {"ok": True, "result": {"url": ""}}
+
+    monkeypatch.setattr("localfirstclaw.cli._build_telegram_api_client", lambda **kwargs: FakeTelegramApiClient())
+    monkeypatch.setattr(
+        "localfirstclaw.cli._load_telegram_runtime_environment", lambda: {"TELEGRAM_BOT_TOKEN": "token"}
+    )
+
+    exit_code = main(["telegram-discover"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "No Telegram bindings were discovered." in captured.out
+    assert "localfirstclaw_bot" in captured.out
+    assert "Send a fresh message" in captured.out
+    assert "If this is a private chat, make sure you pressed Start" in captured.out
+    assert "If this bot was configured with a webhook" in captured.out
+
+
+def test_cli_telegram_discover_reports_webhook_blocker(capsys, monkeypatch) -> None:
+    """The discover command should warn when a webhook is configured."""
+
+    class FakeTelegramApiClient:
+        """Fake client that reports a webhook URL and no pending updates."""
+
+        def get_updates(self, *, offset, timeout_seconds):
+            del offset, timeout_seconds
+            return []
+
+        def get_me(self):
+            return {"ok": True, "result": {"username": "localfirstclaw_bot"}}
+
+        def get_webhook_info(self):
+            return {"ok": True, "result": {"url": "https://example.com/webhook"}}
+
+    monkeypatch.setattr("localfirstclaw.cli._build_telegram_api_client", lambda **kwargs: FakeTelegramApiClient())
+    monkeypatch.setattr(
+        "localfirstclaw.cli._load_telegram_runtime_environment", lambda: {"TELEGRAM_BOT_TOKEN": "token"}
+    )
+
+    exit_code = main(["telegram-discover"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Webhook URL detected: https://example.com/webhook" in captured.out
+
+
 def test_cli_telegram_bind_writes_endpoint_config(capsys, monkeypatch, tmp_path: Path) -> None:
     """The bind command should add a Telegram endpoint to endpoints.yaml."""
     app_paths = AppPaths.from_environment(
