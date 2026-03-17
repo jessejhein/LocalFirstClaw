@@ -7,6 +7,8 @@ from agentinterface.agentmessage import AgentMessage
 from agentinterface.agentrequest import AgentRequest
 from agentinterface.agentresponse import AgentResponse
 from agentinterface.agentrunerror import AgentRunError
+from agentinterface.litellmmodelalias import LiteLLMModelAlias
+from agentinterface.litellmmodelclient import LiteLLMModelClient
 from agentinterface.modelclient import ModelClient
 from agentinterface.modelresult import ModelResult
 
@@ -17,6 +19,8 @@ __all__ = [
     "AgentRequest",
     "AgentResponse",
     "AgentRunError",
+    "LiteLLMModelAlias",
+    "LiteLLMModelClient",
     "ModelClient",
     "ModelResult",
 ]
