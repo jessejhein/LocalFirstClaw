@@ -20,6 +20,8 @@ Exported types:
 - `AgentRequest`
 - `AgentResponse`
 - `AgentRunError`
+- `LiteLLMModelAlias`
+- `LiteLLMModelClient`
 - `ModelClient`
 - `ModelResult`
 
@@ -97,6 +99,18 @@ complete(*, model: str, messages: list[AgentMessage]) -> ModelResult
 
 This keeps provider/runtime selection out of the `AgentInterface` core. The package knows how to execute an agent run, but not which concrete backend policy should be used long term.
 
+### LiteLLM Client
+
+The package now includes `LiteLLMModelClient`, which implements the `ModelClient` protocol using LiteLLM chat completions.
+
+Current behavior:
+
+- accepts a direct provider-qualified `model` value, or a configured alias
+- resolves aliases through `LiteLLMModelAlias`
+- supports optional `api_base`
+- reads API keys from environment variables named by `api_key_env`
+- normalizes the first LiteLLM choice into `ModelResult`
+
 ## Journal Integration
 
 Agent execution lifecycle is journaled through the `journal` package.
@@ -116,16 +130,14 @@ Lifecycle events currently use the request timestamp and a shared correlation id
 
 ## What This Slice Does Not Do Yet
 
-- actual LiteLLM adapter implementation
 - fallback routing across models/providers
 - token accounting or cost tracking
 - tool calling
 - memory loading
 - prompt templating beyond a single system prompt
-- persistent agent config loading
+- advanced provider-specific parameter tuning
 
 ## Intended Next Work
 
-- move agent definitions into persistent config
-- add a real LiteLLM-backed `ModelClient`
+- pass richer provider parameters through the model alias config
 - journal richer usage metadata once a live backend is wired in

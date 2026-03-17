@@ -5,6 +5,7 @@ This directory is the working documentation set for the codebase.
 ## Current Documents
 
 - `agentinterface.md` - Agent execution contract and journaling behavior.
+- `configuration.md` - External config/data layout and YAML file formats.
 - `gateway.md` - Gateway routing model, commands, and API surface.
 - `journal.md` - Public API and behavior for the journal package.
 - `tui.md` - Local terminal interface behavior and rendering rules.

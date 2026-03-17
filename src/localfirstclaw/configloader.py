@@ -34,21 +34,13 @@ def load_localfirstclaw_config(*, config_root: Path | str) -> LocalFirstClawConf
     endpoints_document = _load_yaml_document(path=root / "endpoints.yaml", top_level_key="endpoints")
     models_document = _load_yaml_document(path=root / "models.yaml", top_level_key="aliases")
 
-    agents = {
-        agent["agent_id"]: AgentConfig.model_validate(agent)
-        for agent in agents_document["agents"]
-    }
-    channels = {
-        channel["channel_id"]: ChannelConfig(**channel)
-        for channel in channels_document["channels"]
-    }
+    agents = {agent["agent_id"]: AgentConfig.model_validate(agent) for agent in agents_document["agents"]}
+    channels = {channel["channel_id"]: ChannelConfig(**channel) for channel in channels_document["channels"]}
     endpoints = {
-        endpoint["endpoint_id"]: InterfaceEndpointConfig(**endpoint)
-        for endpoint in endpoints_document["endpoints"]
+        endpoint["endpoint_id"]: InterfaceEndpointConfig(**endpoint) for endpoint in endpoints_document["endpoints"]
     }
     model_aliases = {
-        alias: LiteLLMModelAlias(alias=alias, **settings)
-        for alias, settings in models_document["aliases"].items()
+        alias: LiteLLMModelAlias(alias=alias, **settings) for alias, settings in models_document["aliases"].items()
     }
 
     return LocalFirstClawConfig(

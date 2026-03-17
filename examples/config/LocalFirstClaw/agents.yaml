@@ -1,0 +1,7 @@
+agents:
+  - agent_id: main
+    model: kimi
+    system_prompt: You are the main assistant.
+  - agent_id: coder
+    model: kimi
+    system_prompt: You are the coding assistant.

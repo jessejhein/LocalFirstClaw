@@ -56,7 +56,7 @@ That means the TUI automatically inherits:
 - async background updates
 - multiple panes or channel lists
 - live journal viewer
-- endpoint configuration loading
+- remote transport parity
 
 ## Intended Next Work
 

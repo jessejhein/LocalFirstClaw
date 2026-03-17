@@ -40,15 +40,39 @@ LocalFirstClaw/
 │   ├── agentinterface/          # Pydantic + LiteLLM agent layer
 │   ├── journal/                 # JSONL logging system
 │   ├── tools/                   # Reusable tool library
-│   └── hypothalamus/            # Scheduling engine
-├── workspace/                   # Agent workspace (git-tracked)
-│   ├── agents.md               # Global constitution
-│   ├── user.md                 # User profile
-│   ├── agents_config.yaml      # Team configuration
-│   └── agents/                 # Per-agent directories
+│   ├── hypothalamus/            # Scheduling engine
+│   └── tui/                     # Local terminal interface
 ├── docs/                       # Documentation
+├── examples/                   # Example external config templates
 └── plans/                      # Design documents
 ```
+
+## External Runtime Layout
+
+LocalFirstClaw keeps live user configuration and runtime data outside the source repository.
+
+- Config and workspace root: `~/.config/LocalFirstClaw`
+- Data and logs root: `~/.local/share/LocalFirstClaw`
+
+Current default layout:
+
+```text
+~/.config/LocalFirstClaw/
+├── agents.yaml
+├── channels.yaml
+├── endpoints.yaml
+├── models.yaml
+├── skills/
+└── workspace/
+
+~/.local/share/LocalFirstClaw/
+├── journal/
+├── logs/
+├── plugins/
+└── runtime/
+```
+
+Use the config tree for human-edited, git-trackable files. Use the data tree for generated, bulky, or non-git state like journals, logs, runtime files, and installed plugins.
 
 ## Development Philosophy
 
@@ -60,7 +84,13 @@ LocalFirstClaw/
 
 ## Getting Started
 
-Coming soon - Full deployment guide under development.
+1. Create the project environment with `uv sync`.
+2. Create the external config repo under `~/.config/LocalFirstClaw`.
+3. Create the external data directories under `~/.local/share/LocalFirstClaw`.
+4. Add `agents.yaml`, `channels.yaml`, `endpoints.yaml`, and `models.yaml` under the config root.
+5. Set any required provider API keys in your shell environment.
+
+See [configuration.md](/home/openclaw/Projects/LocalFirstClaw/docs/configuration.md) for the current file formats and [examples/config/LocalFirstClaw](/home/openclaw/Projects/LocalFirstClaw/examples/config/LocalFirstClaw) for starter templates.
 
 ## License
 

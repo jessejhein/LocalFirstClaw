@@ -4,7 +4,7 @@ This document is the current implementation handoff for LocalFirstClaw. It is in
 
 ## Executive Summary
 
-LocalFirstClaw is still early-stage, but four real subsystems are now implemented:
+LocalFirstClaw is still early-stage, but four real subsystems and the first external-config bootstrap layer are now implemented:
 
 - `journal`
 - the first `gateway` slice
@@ -19,9 +19,13 @@ The repo started as a multi-package Python workspace with plans and scaffolding 
 - a tested in-memory `gateway` routing core with a minimal FastAPI shell
 - a tested `agentinterface` package with typed execution and journaling
 - a tested local `tui` package for end-to-end terminal interaction
+- XDG-style external config/data path resolution
+- YAML-backed config loading for agents, channels, endpoints, and model aliases
+- bootstrap helpers that build runtime objects from external config
+- a tested LiteLLM-backed model client with alias support
 - initial documentation and a design record trail
 
-The next recommended slice is to move persistent config in behind the current contracts and then add a real model backend or the Telegram transport.
+The next recommended slice is to add first-run config scaffolding and then connect the next real transport or runtime layer.
 
 ## Current Repository State
 
@@ -86,6 +90,8 @@ Important environment details:
 - `UV_CACHE_DIR=.uv-cache`
 - `UV_PYTHON_INSTALL_DIR=.uv-python`
 - root package stub exists at [src/localfirstclaw/__init__.py](/home/openclaw/Projects/LocalFirstClaw/src/localfirstclaw/__init__.py) so the root project can install cleanly
+- live config should be stored under `~/.config/LocalFirstClaw`
+- generated data should be stored under `~/.local/share/LocalFirstClaw`
 
 Lint and format decisions:
 
@@ -100,6 +106,8 @@ These decisions are settled unless there is a strong reason to reopen them:
 - preserve clean package boundaries rather than collapsing packages early
 - implement `journal` first
 - defer the file-based assistant `workspace/` until core packages are stable
+- keep live config and workspace outside the source repo
+- keep generated data outside the source repo
 - start with plain LiteLLM later, not router complexity on day one
 - log provider/runtime failures as structured journal events
 - keep the journal append-only
@@ -165,6 +173,8 @@ Implemented agentinterface package:
 - [packages/agentinterface/src/agentinterface/agentrequest.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/agentrequest.py)
 - [packages/agentinterface/src/agentinterface/agentresponse.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/agentresponse.py)
 - [packages/agentinterface/src/agentinterface/agentrunerror.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/agentrunerror.py)
+- [packages/agentinterface/src/agentinterface/litellmmodelalias.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/litellmmodelalias.py)
+- [packages/agentinterface/src/agentinterface/litellmmodelclient.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/litellmmodelclient.py)
 - [packages/agentinterface/src/agentinterface/modelclient.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/modelclient.py)
 - [packages/agentinterface/src/agentinterface/modelresult.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/modelresult.py)
 
@@ -180,6 +190,13 @@ Implemented tui package:
 Implemented tui test file:
 
 - [packages/tui/tests/test_tui.py](/home/openclaw/Projects/LocalFirstClaw/packages/tui/tests/test_tui.py)
+
+Implemented root bootstrap/config package files:
+
+- [src/localfirstclaw/apppaths.py](/home/openclaw/Projects/LocalFirstClaw/src/localfirstclaw/apppaths.py)
+- [src/localfirstclaw/configloader.py](/home/openclaw/Projects/LocalFirstClaw/src/localfirstclaw/configloader.py)
+- [src/localfirstclaw/localfirstclawconfig.py](/home/openclaw/Projects/LocalFirstClaw/src/localfirstclaw/localfirstclawconfig.py)
+- [src/localfirstclaw/bootstrap.py](/home/openclaw/Projects/LocalFirstClaw/src/localfirstclaw/bootstrap.py)
 
 ## Journal Package Contract
 
@@ -252,6 +269,40 @@ Concurrency behavior:
 Known current limit:
 
 - no cross-process locking yet
+
+## External Config And Data Layout
+
+Live user state should not be stored in the source checkout.
+
+Current default layout:
+
+- config root: `~/.config/LocalFirstClaw`
+- data root: `~/.local/share/LocalFirstClaw`
+
+Config root contents:
+
+- `agents.yaml`
+- `channels.yaml`
+- `endpoints.yaml`
+- `models.yaml`
+- `skills/`
+- `workspace/`
+
+Data root contents:
+
+- `journal/`
+- `logs/`
+- `plugins/`
+- `runtime/`
+
+Bootstrap flow:
+
+1. resolve paths with `AppPaths.from_environment(...)`
+2. create directories with `ensure_directories()`
+3. load config with `load_localfirstclaw_config(...)`
+4. create journal with `build_journal(...)`
+5. create agent interface with `build_agent_interface(...)`
+6. create gateway router with `build_gateway_router(...)`
 
 ## Gateway Package Contract
 

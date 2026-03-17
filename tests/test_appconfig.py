@@ -8,6 +8,7 @@ from pathlib import Path
 from agentinterface import AgentInterface
 from gateway import GatewayRouter
 from journal import Journal
+
 from localfirstclaw import (
     AppPaths,
     LocalFirstClawConfig,
@@ -58,8 +59,7 @@ agents:
   - agent_id: coder
     model: kimi
     system_prompt: You are the coding assistant.
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     (config_root / "channels.yaml").write_text(
@@ -69,8 +69,7 @@ channels:
     default_agent_id: main
   - channel_id: game
     default_agent_id: coder
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     (config_root / "endpoints.yaml").write_text(
@@ -81,8 +80,7 @@ endpoints:
     binding: session:main
     primary_channel_id: main
     allow_channel_switching: true
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     (config_root / "models.yaml").write_text(
@@ -92,8 +90,7 @@ aliases:
     provider_model: openai/kimi-k2
     api_base: https://llm.example.test/v1
     api_key_env: CHUTES_API_KEY
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
 
@@ -124,8 +121,7 @@ agents:
   - agent_id: main
     model: kimi
     system_prompt: You are the main assistant.
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     (app_paths.config_root / "channels.yaml").write_text(
@@ -133,8 +129,7 @@ agents:
 channels:
   - channel_id: main
     default_agent_id: main
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     (app_paths.config_root / "endpoints.yaml").write_text(
@@ -145,8 +140,7 @@ endpoints:
     binding: session:main
     primary_channel_id: main
     allow_channel_switching: true
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     (app_paths.config_root / "models.yaml").write_text(
@@ -156,8 +150,7 @@ aliases:
     provider_model: openai/kimi-k2
     api_base: https://llm.example.test/v1
     api_key_env: CHUTES_API_KEY
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
 

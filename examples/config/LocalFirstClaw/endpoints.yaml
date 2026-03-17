@@ -1,0 +1,6 @@
+endpoints:
+  - endpoint_id: tui-main
+    transport: tui
+    binding: session:main
+    primary_channel_id: main
+    allow_channel_switching: true

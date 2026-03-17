@@ -22,8 +22,12 @@ Implemented:
 - pluggable model client protocol and structured model result
 - journaled agent run start, completion, and failure events
 - test coverage for the agentinterface public behavior
+- LiteLLM-backed model execution with alias support
 - `tui` local line-oriented terminal session over the gateway
 - test coverage for the tui public behavior
+- XDG-style external config/data path resolution
+- YAML-backed loading for agents, channels, endpoints, and model aliases
+- bootstrap helpers that build the journal, agent interface, and gateway from persistent config
 
 Not implemented yet:
 
@@ -33,9 +37,9 @@ Not implemented yet:
 - cross-process journal locking
 - provider fallback routing
 - real transport adapters
-- persistent gateway config loading
-- real LiteLLM-backed model execution
 - richer terminal UI behavior
+- first-run config generation
+- config hot reload
 
 ## Immediate Next Step
 
@@ -43,9 +47,9 @@ Build the next package or runtime feature on top of the journal and gateway rath
 
 Recommended order:
 
-1. Move endpoint/channel and agent definitions into persistent config.
-2. Add a real LiteLLM-backed model client.
-3. Extend the TUI or add Telegram as the next transport.
+1. Add first-run config scaffolding and example installers.
+2. Extend the TUI or add Telegram as the next transport.
+3. Add a scheduler/runtime layer that can inspect journal and routing state.
 
 ## Constraints To Preserve
 
@@ -59,3 +63,5 @@ Recommended order:
 - Keep transport endpoints distinct from internal channels.
 - Keep agent execution behind the typed request/response boundary.
 - Keep TUI input flowing through gateway rather than adding a side path.
+- Keep live config under `~/.config/LocalFirstClaw`.
+- Keep generated data under `~/.local/share/LocalFirstClaw`.

@@ -146,15 +146,15 @@ Current note:
 ## What This Slice Does Not Do Yet
 
 - real remote transport adapters
-- persistent endpoint/channel config loading
 - multi-endpoint fanout delivery
 - channel membership history beyond current runtime state and journal events
 - script-driven reset helpers
 - resilient error handling around live agent execution
 
+Persistent endpoint and channel config loading now exists at the application bootstrap layer rather than inside the `gateway` package itself.
+
 ## Intended Next Work
 
-- move endpoint and channel configuration into persistent config files
 - connect real remote interface adapters
 - add failure handling around agent execution
 - expose richer gateway inspection and control commands
