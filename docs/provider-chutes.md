@@ -42,6 +42,7 @@ There are two currently verified ways.
 ### Direct Provider Query
 
 ```bash
+cd /home/openclaw/Projects/LocalFirstClaw
 .venv/bin/python - <<'PY'
 import json
 import os

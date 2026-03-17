@@ -92,11 +92,11 @@ Use the config tree for human-edited, git-trackable files. Use the data tree for
 5. Add `agents.yaml`, `channels.yaml`, `endpoints.yaml`, and `models.yaml` under the config root.
 6. Set any required provider API keys in your shell environment.
    You can also place them in `~/.config/LocalFirstClaw/.env`.
-7. Run `.venv/bin/localfirstclaw validate-setup` to confirm the config is loadable.
-8. Run `.venv/bin/localfirstclaw check-provider chutes` to confirm Chutes is reachable without using completion tokens.
-9. Run `.venv/bin/localfirstclaw describe-plugin telegram` when the setup agent needs Telegram-specific configuration guidance.
+7. Run `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw validate-setup` to confirm the config is loadable.
+8. Run `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw check-provider chutes` to confirm Chutes is reachable without using completion tokens.
+9. Run `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw describe-plugin telegram` when the setup agent needs Telegram-specific configuration guidance.
 10. See [telegram.md](/home/openclaw/Projects/LocalFirstClaw/docs/telegram.md) for BotFather setup and endpoint binding examples.
-11. Use `.venv/bin/localfirstclaw telegram-discover` and `.venv/bin/localfirstclaw telegram-onboard --endpoint-id telegram-main` to connect the default `main` Telegram chat without hand-editing `endpoints.yaml`.
+11. Use `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw telegram-discover` and `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw telegram-onboard --endpoint-id telegram-main` to connect the default `main` Telegram chat without hand-editing `endpoints.yaml`.
 
 See [SETUP.md](/home/openclaw/Projects/LocalFirstClaw/SETUP.md) for the full setup sequence, [configuration.md](/home/openclaw/Projects/LocalFirstClaw/docs/configuration.md) for the current file formats, and [examples/config/LocalFirstClaw](/home/openclaw/Projects/LocalFirstClaw/examples/config/LocalFirstClaw) for starter templates.
 

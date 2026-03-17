@@ -177,6 +177,7 @@ Naming rule:
 This checks config loading, data directories, and required environment variables.
 
 ```bash
+cd /home/openclaw/Projects/LocalFirstClaw
 .venv/bin/localfirstclaw validate-setup
 ```
 
@@ -187,6 +188,7 @@ If that reports `Setup validation passed.`, the current bootstrap layer is loada
 This validates that Chutes is reachable and the API key works by hitting the provider metadata endpoint instead of a completion endpoint.
 
 ```bash
+cd /home/openclaw/Projects/LocalFirstClaw
 .venv/bin/localfirstclaw check-provider chutes
 ```
 
@@ -197,6 +199,7 @@ This should be safe to run frequently because it checks the model catalog, not a
 Only run this if you explicitly want to prove the configured model can answer a prompt. This may incur provider cost.
 
 ```bash
+cd /home/openclaw/Projects/LocalFirstClaw
 .venv/bin/python - <<'PY'
 from datetime import UTC, datetime
 
@@ -227,6 +230,7 @@ PY
 If you want to confirm the current repo state matches the documented implementation:
 
 ```bash
+cd /home/openclaw/Projects/LocalFirstClaw
 .venv/bin/pytest tests/test_appconfig.py \
   packages/agentinterface/tests/test_litellmmodelclient.py \
   packages/agentinterface/tests/test_agentinterface.py \
@@ -248,24 +252,34 @@ These are not setup mistakes. They are current implementation limits:
 ## CLI Commands Added For Setup
 
 - `.venv/bin/localfirstclaw validate-setup`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw validate-setup`
   Validates config files, data directories, and required environment variables.
 - `.venv/bin/localfirstclaw validate-setup --check-providers`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw validate-setup --check-providers`
   Also calls provider metadata endpoints. This should not use completion tokens.
 - `.venv/bin/localfirstclaw check-provider chutes`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw check-provider chutes`
   Performs a zero-token Chutes reachability check against the `/models` endpoint.
 - `.venv/bin/localfirstclaw describe-plugin telegram`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw describe-plugin telegram`
   Prints the Telegram plugin manifest and config field descriptions.
 - `.venv/bin/localfirstclaw plugin-skill telegram`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw plugin-skill telegram`
   Prints the Telegram plugin's setup and maintenance guidance on demand.
 - `.venv/bin/localfirstclaw telegram-discover`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw telegram-discover`
   Polls Telegram once and lists candidate `chat:` or `thread:` bindings.
 - `.venv/bin/localfirstclaw telegram-bind ...`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw telegram-bind ...`
   Writes a Telegram endpoint entry into `endpoints.yaml`.
 - `.venv/bin/localfirstclaw telegram-onboard ...`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw telegram-onboard ...`
   Shows discovered bindings and then writes the selected endpoint config. If exactly one binding was discovered, it can bind automatically without an explicit `--binding`.
 - `.venv/bin/localfirstclaw run-telegram --once`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw run-telegram --once`
   Polls Telegram once and routes any matching updates through the gateway.
 - `.venv/bin/localfirstclaw run-telegram`
+  Run it as `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw run-telegram`
   Runs the Telegram polling loop continuously.
   It prints a startup message and keeps running until interrupted with `Ctrl+C`.
 
@@ -279,7 +293,7 @@ When another agent is walking a user through Telegram onboarding, it should not 
 2. Have you already sent at least one message to the bot from the Telegram chat or thread you want to bind?
 3. If you want something other than the default `main` channel, which channel should this Telegram endpoint map to?
 4. Should this endpoint use the default channel-switching behavior, or should it stay fixed to one channel with `--fixed-channel`?
-5. After binding, the normal next step is to start the continuous runner with `.venv/bin/localfirstclaw run-telegram`. Only use `--once` as a diagnostic check.
+5. After binding, the normal next step is to start the continuous runner with `cd /home/openclaw/Projects/LocalFirstClaw && .venv/bin/localfirstclaw run-telegram`. Only use `--once` as a diagnostic check.
 
 If the user has not yet messaged the bot, the setup agent should pause and ask them to do that before running discovery.
 
