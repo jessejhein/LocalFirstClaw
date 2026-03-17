@@ -80,7 +80,18 @@ def resolve_time_value(value: datetime | str | None, *, now: datetime) -> dateti
 
 
 def _parse_iso_datetime(*, value: str) -> datetime | None:
-    """Parse an ISO 8601 datetime string when possible."""
+    """
+    Parse an ISO 8601 datetime string when possible.
+
+    Args:
+        value: Candidate ISO 8601 value, already normalized to lower case.
+
+    Returns:
+        A UTC datetime when parsing succeeds, otherwise None.
+
+    Raises:
+        JournalQueryError: If the value is ISO-like but missing timezone information.
+    """
     normalized_value = value.replace("z", "+00:00")
 
     try:
@@ -95,7 +106,16 @@ def _parse_iso_datetime(*, value: str) -> datetime | None:
 
 
 def _parse_ago_expression(*, match: re.Match[str], now: datetime) -> datetime:
-    """Convert an 'N units ago' expression into a UTC datetime."""
+    """
+    Convert an 'N units ago' expression into a UTC datetime.
+
+    Args:
+        match: Regular expression match containing amount and unit groups.
+        now: Reference point for the relative expression.
+
+    Returns:
+        A UTC datetime relative to the provided reference time.
+    """
     amount = int(match.group("amount"))
     unit = match.group("unit")
     delta: timedelta
@@ -111,7 +131,20 @@ def _parse_ago_expression(*, match: re.Match[str], now: datetime) -> datetime:
 
 
 def _combine_date_time(*, current_date: date, hour: int, minute: int) -> datetime:
-    """Combine a date with hour/minute values as a UTC datetime."""
+    """
+    Combine a date with hour/minute values as a UTC datetime.
+
+    Args:
+        current_date: Date portion of the final value.
+        hour: Hour in 24-hour time.
+        minute: Minute value.
+
+    Returns:
+        A timezone-aware UTC datetime.
+
+    Raises:
+        JournalQueryError: If the hour or minute is out of range.
+    """
     if hour > 23 or minute > 59:
         raise JournalQueryError("time expressions must use valid 24-hour time")
 
@@ -119,12 +152,29 @@ def _combine_date_time(*, current_date: date, hour: int, minute: int) -> datetim
 
 
 def _date_start(*, current_date: date) -> datetime:
-    """Return the start of a date in UTC."""
+    """
+    Return the start of a date in UTC.
+
+    Args:
+        current_date: Date to convert.
+
+    Returns:
+        Midnight UTC for the provided date.
+    """
     return datetime.combine(current_date, time.min, tzinfo=UTC)
 
 
 def _last_weekday(*, reference_date: date, weekday_name: str) -> datetime:
-    """Return the previous named weekday at midnight UTC."""
+    """
+    Return the previous named weekday at midnight UTC.
+
+    Args:
+        reference_date: Date relative to which "last weekday" is resolved.
+        weekday_name: Lower-case weekday name present in WEEKDAY_LOOKUP.
+
+    Returns:
+        Midnight UTC for the previous occurrence of the named weekday.
+    """
     target_weekday = WEEKDAY_LOOKUP[weekday_name]
     day_delta = (reference_date.weekday() - target_weekday) % 7
 

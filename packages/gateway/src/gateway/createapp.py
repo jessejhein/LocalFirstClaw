@@ -30,7 +30,18 @@ def create_app(*, dependencies: GatewayAppDependencies) -> FastAPI:
 
     @app.post("/messages")
     def post_message(message: MessageInput) -> dict[str, str | None]:
-        """Route one inbound message through the gateway core."""
+        """
+        Route one inbound message through the gateway core.
+
+        Args:
+            message: Parsed inbound payload from an interface adapter.
+
+        Returns:
+            The structured gateway result encoded as a JSON-friendly dictionary.
+
+        Raises:
+            HTTPException: If the gateway rejects the request as a command error.
+        """
         result = dependencies.router.handle_message(
             endpoint_id=message.endpoint_id,
             text=message.text,
@@ -44,7 +55,15 @@ def create_app(*, dependencies: GatewayAppDependencies) -> FastAPI:
 
     @app.get("/endpoints/{endpoint_id}")
     def get_endpoint(endpoint_id: str) -> dict[str, str | bool]:
-        """Return current routing state for one endpoint."""
+        """
+        Return current routing state for one endpoint.
+
+        Args:
+            endpoint_id: Configured endpoint identifier.
+
+        Returns:
+            A JSON-friendly snapshot of the endpoint routing state.
+        """
         status = dependencies.router.get_endpoint_status(endpoint_id=endpoint_id)
         return {
             "endpoint_id": status.endpoint_id,

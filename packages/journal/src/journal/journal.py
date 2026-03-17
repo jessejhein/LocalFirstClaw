@@ -63,7 +63,15 @@ class Journal:
         return JournalWriteResult(path=target_path, event=normalized_event)
 
     async def append_event_async(self, event: JournalEvent) -> JournalWriteResult:
-        """Expose append_event through an async-compatible method."""
+        """
+        Expose append_event through an async-compatible method.
+
+        Args:
+            event: Structured event to append.
+
+        Returns:
+            The same write result produced by append_event.
+        """
         return self.append_event(event=event)
 
     def query_recent(self, query: JournalQuery) -> list[JournalEvent]:
@@ -107,22 +115,51 @@ class Journal:
         return sorted(events, key=lambda event: event.timestamp)
 
     async def query_recent_async(self, query: JournalQuery) -> list[JournalEvent]:
-        """Expose query_recent through an async-compatible method."""
+        """
+        Expose query_recent through an async-compatible method.
+
+        Args:
+            query: Structured filters for the journal read.
+
+        Returns:
+            Matching events ordered by timestamp.
+        """
         return self.query_recent(query=query)
 
     def _normalize_event(self, *, event: JournalEvent) -> JournalEvent:
-        """Ensure required runtime-generated values are present."""
+        """
+        Ensure required runtime-generated values are present.
+
+        Args:
+            event: Candidate event to normalize before persistence.
+
+        Returns:
+            The original event if already complete, otherwise a copy with a generated correlation id.
+        """
         if event.correlation_id is not None:
             return event
 
         return JournalEvent(**(event.model_dump() | {"correlation_id": str(uuid.uuid4())}))
 
     def _journal_path_for_timestamp(self, *, timestamp: datetime) -> Path:
-        """Map an event timestamp to its daily JSONL file."""
+        """
+        Map an event timestamp to its daily JSONL file.
+
+        Args:
+            timestamp: Event timestamp to convert into a UTC journal date.
+
+        Returns:
+            The daily JSONL path for that event timestamp.
+        """
         return self.root_directory / f"{timestamp.astimezone(UTC).date().isoformat()}.jsonl"
 
     def _ensure_root_directory(self) -> None:
-        """Create the journal directory if needed and validate its type."""
+        """
+        Create the journal directory if needed and validate its type.
+
+        Raises:
+            JournalWriteError: If the configured root exists but is not a directory.
+        """
         if self.root_directory.exists():
             if not self.root_directory.is_dir():
                 raise JournalWriteError("journal root must be a directory")
@@ -131,7 +168,15 @@ class Journal:
         self.root_directory.mkdir(parents=True, exist_ok=True)
 
     def _serialize_event(self, *, event: JournalEvent) -> str:
-        """Serialize an event to compact stable JSON."""
+        """
+        Serialize an event to compact stable JSON.
+
+        Args:
+            event: Event to serialize.
+
+        Returns:
+            Compact JSON suitable for one-line JSONL storage.
+        """
         return json.dumps(
             event.model_dump(mode="json", exclude_none=True),
             sort_keys=True,
@@ -139,7 +184,16 @@ class Journal:
         )
 
     def _candidate_files(self, *, since: datetime | None, until: datetime | None) -> list[Path]:
-        """Return the daily files that may contain matching events."""
+        """
+        Return the daily files that may contain matching events.
+
+        Args:
+            since: Lower query bound after expression resolution.
+            until: Upper query bound after expression resolution.
+
+        Returns:
+            Existing daily journal file paths that could contain matching events.
+        """
         if since is None and until is None:
             return sorted(self.root_directory.glob("*.jsonl"))
 
@@ -170,7 +224,21 @@ class Journal:
         since: datetime | None,
         until: datetime | None,
     ) -> list[JournalEvent]:
-        """Read one daily file and filter matching events."""
+        """
+        Read one daily file and filter matching events.
+
+        Args:
+            file_path: Journal file to scan.
+            query: Structured filters for the current read.
+            since: Lower time bound after expression resolution.
+            until: Upper time bound after expression resolution.
+
+        Returns:
+            Matching events from the given file only.
+
+        Raises:
+            JournalQueryError: If the file cannot be read or contains invalid JSONL lines.
+        """
         matching_events: list[JournalEvent] = []
 
         try:
@@ -200,7 +268,18 @@ class Journal:
         since: datetime | None,
         until: datetime | None,
     ) -> bool:
-        """Apply all structured filters to one event."""
+        """
+        Apply all structured filters to one event.
+
+        Args:
+            event: Candidate event from the journal.
+            query: Structured filters for the current read.
+            since: Lower time bound after expression resolution.
+            until: Upper time bound after expression resolution.
+
+        Returns:
+            True when the event satisfies every active filter.
+        """
         if since is not None and event.timestamp < since:
             return False
 
@@ -225,6 +304,14 @@ class Journal:
         return True
 
     def _searchable_text(self, *, event: JournalEvent) -> str:
-        """Build a normalized text blob for simple substring matching."""
+        """
+        Build a normalized text blob for simple substring matching.
+
+        Args:
+            event: Event whose message and payload should be flattened for search.
+
+        Returns:
+            Lower-cased text assembled from the message and serialized payload.
+        """
         payload_text = json.dumps(event.payload, sort_keys=True).lower()
         return f"{event.message.lower()} {payload_text}"

@@ -139,7 +139,18 @@ class GatewayRouter:
         user_id: str,
         timestamp: datetime,
     ) -> GatewayResult:
-        """Parse and execute one gateway command."""
+        """
+        Parse and execute one gateway command.
+
+        Args:
+            endpoint_id: Source endpoint identifier.
+            command_text: Raw command text beginning with `!`.
+            user_id: Transport-local user identifier.
+            timestamp: Time the command entered the gateway.
+
+        Returns:
+            Structured command result or structured command error.
+        """
         endpoint = self._get_endpoint_config(endpoint_id=endpoint_id)
         runtime_state = self.runtime_states[endpoint_id]
         parts = command_text.split()
@@ -274,7 +285,18 @@ class GatewayRouter:
         user_id: str,
         timestamp: datetime,
     ) -> GatewayResult:
-        """Switch the active channel for one endpoint when allowed."""
+        """
+        Switch the active channel for one endpoint when allowed.
+
+        Args:
+            endpoint_id: Source endpoint identifier.
+            channel_token: Bare `@channel` token from the inbound message.
+            user_id: Transport-local user identifier.
+            timestamp: Time the switch request entered the gateway.
+
+        Returns:
+            Structured routing result describing the new active channel or the rejection.
+        """
         endpoint = self._get_endpoint_config(endpoint_id=endpoint_id)
         runtime_state = self.runtime_states[endpoint_id]
         target_channel_id = channel_token[1:]
@@ -329,7 +351,20 @@ class GatewayRouter:
         target_channel_id: str,
         command_name: str | None = None,
     ) -> GatewayResult:
-        """Route one message to the target channel and attached agent."""
+        """
+        Route one message to the target channel and attached agent.
+
+        Args:
+            endpoint_id: Source endpoint identifier.
+            text: Message body after any gateway syntax is removed.
+            user_id: Transport-local user identifier.
+            timestamp: Time the message entered the gateway.
+            target_channel_id: Channel chosen for routing.
+            command_name: Optional gateway command that triggered the route.
+
+        Returns:
+            Structured routing result describing the destination channel and agent.
+        """
         endpoint = self._get_endpoint_config(endpoint_id=endpoint_id)
         runtime_state = self.runtime_states[endpoint_id]
         channel = self._get_channel(channel_id=target_channel_id)
@@ -374,7 +409,22 @@ class GatewayRouter:
         command_text: str,
         error_message: str,
     ) -> GatewayResult:
-        """Return and journal a structured command error."""
+        """
+        Return and journal a structured command error.
+
+        Args:
+            endpoint_id: Source endpoint identifier.
+            primary_channel_id: Configured primary channel for the endpoint.
+            active_channel_id: Runtime active channel for the endpoint.
+            command_name: Parsed gateway command name.
+            timestamp: Time the rejected command entered the gateway.
+            user_id: Transport-local user identifier.
+            command_text: Original raw command text.
+            error_message: Human-readable rejection reason.
+
+        Returns:
+            Structured command error result.
+        """
         result = GatewayResult(
             kind="command_error",
             message=error_message,
@@ -409,7 +459,16 @@ class GatewayRouter:
         command_text: str,
         result: GatewayResult,
     ) -> None:
-        """Write a journal event for a successfully executed command."""
+        """
+        Write a journal event for a successfully executed command.
+
+        Args:
+            timestamp: Time the command completed.
+            endpoint_id: Source endpoint identifier.
+            user_id: Transport-local user identifier.
+            command_text: Original raw command text.
+            result: Structured result returned to the caller.
+        """
         self._journal_event(
             timestamp=timestamp,
             event_type="gateway.command_executed",
@@ -438,7 +497,18 @@ class GatewayRouter:
         tags: list[str],
         payload: dict[str, str | None],
     ) -> None:
-        """Append one structured gateway event to the journal."""
+        """
+        Append one structured gateway event to the journal.
+
+        Args:
+            timestamp: Event timestamp.
+            event_type: Gateway-specific event classifier.
+            level: Operational event level.
+            agent_id: Logical agent or component associated with the event.
+            message: Human-readable event summary.
+            tags: Filterable event tags.
+            payload: Structured event details.
+        """
         self.journal.append_event(
             event=JournalEvent(
                 timestamp=timestamp,
@@ -453,14 +523,36 @@ class GatewayRouter:
         )
 
     def _get_endpoint_config(self, *, endpoint_id: str) -> InterfaceEndpointConfig:
-        """Return endpoint config or raise a clear error."""
+        """
+        Return endpoint config or raise a clear error.
+
+        Args:
+            endpoint_id: Configured endpoint identifier.
+
+        Returns:
+            The matching endpoint configuration.
+
+        Raises:
+            ValueError: If the endpoint is unknown to the router.
+        """
         if endpoint_id not in self.endpoints:
             raise ValueError(f"unknown endpoint: {endpoint_id}")
 
         return self.endpoints[endpoint_id]
 
     def _get_channel(self, *, channel_id: str) -> ChannelConfig:
-        """Return channel config or raise a clear error."""
+        """
+        Return channel config or raise a clear error.
+
+        Args:
+            channel_id: Known internal channel identifier.
+
+        Returns:
+            The matching channel configuration.
+
+        Raises:
+            ValueError: If the channel is unknown to the router.
+        """
         if channel_id not in self.channels:
             raise ValueError(f"unknown channel: {channel_id}")
 
