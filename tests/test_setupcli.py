@@ -266,3 +266,22 @@ def test_cli_plugin_skill_reports_maintenance_guidance(capsys) -> None:
     assert exit_code == 0
     assert "Telegram Transport Plugin" in captured.out
     assert "How To Configure" in captured.out
+
+
+def test_cli_describe_plugin_includes_botfather_guidance_reference(capsys) -> None:
+    """The Telegram plugin manifest path should exist for setup agents to discover."""
+    exit_code = main(["describe-plugin", "telegram"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "bot_token_env" in captured.out
+
+
+def test_cli_plugin_skill_mentions_botfather_steps(capsys) -> None:
+    """The on-demand Telegram setup guide should mention BotFather and chat binding."""
+    exit_code = main(["plugin-skill", "telegram"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "BotFather" in captured.out
+    assert "chat:<chat_id>" in captured.out
