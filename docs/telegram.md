@@ -25,6 +25,8 @@ cd /home/openclaw/Projects/LocalFirstClaw
 .venv/bin/localfirstclaw run-telegram
 ```
 
+The runner prints a startup message and then keeps polling until you stop it with `Ctrl+C`.
+
 Setup and discovery commands:
 
 ```bash

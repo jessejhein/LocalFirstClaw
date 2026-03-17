@@ -274,6 +274,7 @@ def _run_telegram(*, once: bool, bot_token: str | None, bot_token_env: str) -> i
         print(f"Processed {processed_count} Telegram update(s).")
         return 0
 
+    print("Telegram polling started. Press Ctrl+C to stop.")
     while True:
         runner.process_once()
 

@@ -267,6 +267,7 @@ These are not setup mistakes. They are current implementation limits:
   Polls Telegram once and routes any matching updates through the gateway.
 - `.venv/bin/localfirstclaw run-telegram`
   Runs the Telegram polling loop continuously.
+  It prints a startup message and keeps running until interrupted with `Ctrl+C`.
 
 These commands load fallback secrets from `~/.config/LocalFirstClaw/.env`, so they do not require you to pre-source the shell every time.
 
