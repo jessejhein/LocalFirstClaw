@@ -210,13 +210,11 @@ If you want to confirm the current repo state matches the documented implementat
 
 These are not setup mistakes. They are current implementation limits:
 
-- no standalone CLI entrypoint yet
 - no production runner for the TUI yet
-- no Telegram transport yet
 - no scheduler runtime yet
 - no first-run config generator yet
 - no hot reload for config changes yet
-- no Telegram transport yet
+- no automatic Telegram chat discovery inside `endpoints.yaml` without using the CLI onboarding commands
 
 ## CLI Commands Added For Setup
 
@@ -230,6 +228,12 @@ These are not setup mistakes. They are current implementation limits:
   Prints the Telegram plugin manifest and config field descriptions.
 - `localfirstclaw plugin-skill telegram`
   Prints the Telegram plugin's setup and maintenance guidance on demand.
+- `localfirstclaw telegram-discover`
+  Polls Telegram once and lists candidate `chat:` or `thread:` bindings.
+- `localfirstclaw telegram-bind ...`
+  Writes a Telegram endpoint entry into `endpoints.yaml`.
+- `localfirstclaw telegram-onboard ...`
+  Shows discovered bindings and then writes the selected endpoint config. If exactly one binding was discovered, it can bind automatically without an explicit `--binding`.
 - `localfirstclaw run-telegram --once`
   Polls Telegram once and routes any matching updates through the gateway.
 - `localfirstclaw run-telegram`

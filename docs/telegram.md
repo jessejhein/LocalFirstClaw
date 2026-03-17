@@ -23,6 +23,14 @@ For continuous operation:
 localfirstclaw run-telegram
 ```
 
+Setup and discovery commands:
+
+```bash
+localfirstclaw telegram-discover
+localfirstclaw telegram-bind --endpoint-id telegram-main --binding chat:123456789 --channel main --allow-channel-switching
+localfirstclaw telegram-onboard --endpoint-id telegram-main --channel main --allow-channel-switching
+```
+
 ## BotFather Setup
 
 1. Open Telegram.
@@ -47,11 +55,30 @@ If you regenerate the token later with BotFather, update the `.env` file or shel
 ## First Connection Flow
 
 1. Message your bot from the Telegram chat you want LocalFirstClaw to use.
-2. Determine the chat binding:
+2. Run:
+
+```bash
+localfirstclaw telegram-discover
+```
+
+3. Determine the chat binding:
    - private chat: `chat:<chat_id>`
    - forum topic or thread: `thread:<chat_id>:<message_thread_id>`
-3. Add a matching Telegram endpoint entry to `~/.config/LocalFirstClaw/endpoints.yaml`.
-4. Start the runner with `localfirstclaw run-telegram --once` or `localfirstclaw run-telegram`.
+4. Bind that chat or thread to a channel:
+
+```bash
+localfirstclaw telegram-bind --endpoint-id telegram-main --binding chat:123456789 --channel main --allow-channel-switching
+```
+
+5. Start the runner with `localfirstclaw run-telegram --once` or `localfirstclaw run-telegram`.
+
+If you want one command that shows discoveries and then writes the binding you selected, use:
+
+```bash
+localfirstclaw telegram-onboard --endpoint-id telegram-main --channel main --allow-channel-switching
+```
+
+If exactly one chat or thread was discovered, `telegram-onboard` binds it automatically. If multiple candidates were discovered, rerun it with an explicit `--binding` value.
 
 ## Endpoint Config Example
 
@@ -92,9 +119,5 @@ That returns the Telegram plugin manifest and the maintenance/setup guide on dem
 
 ## Current Limitations
 
-- no automatic endpoint creation from unknown Telegram chats yet
-- no automatic chat id discovery helper command yet
 - no send retry/backoff strategy yet
 - no process supervisor wrapper yet
-
-For the live test, manual endpoint config is still required.
