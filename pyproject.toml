@@ -6,6 +6,7 @@ agentinterface = { workspace = true }
 gateway = { workspace = true }
 hypothalamus = { workspace = true }
 journal = { workspace = true }
+telegramtransport = { workspace = true }
 tui = { workspace = true }
 tools = { workspace = true }
 
@@ -22,6 +23,7 @@ dependencies = [
     "agentinterface>=0.1.0",
     "gateway>=0.1.0",
     "journal>=0.1.0",
+    "telegramtransport>=0.1.0",
     "tools>=0.1.0",
 ]
 

@@ -2,7 +2,6 @@
 
 from localfirstclaw.apppaths import AppPaths
 from localfirstclaw.bootstrap import build_agent_interface, build_gateway_router, build_journal
-from localfirstclaw.cli import main
 from localfirstclaw.configloader import load_localfirstclaw_config
 from localfirstclaw.localfirstclawconfig import LocalFirstClawConfig
 from localfirstclaw.providercheck import ProviderCheckResult, check_chutes_connectivity
@@ -19,7 +18,6 @@ __all__ = [
     "build_journal",
     "check_chutes_connectivity",
     "load_localfirstclaw_config",
-    "main",
     "validate_setup",
 ]
 

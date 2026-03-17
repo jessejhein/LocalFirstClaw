@@ -26,6 +26,7 @@ The repo started as a multi-package Python workspace with plans and scaffolding 
 - a tested root CLI for setup validation and zero-token provider checks
 - a tested plugin contract with on-demand self-description and maintenance guidance
 - an initial Telegram transport plugin that documents config/use and normalizes Telegram bindings
+- a tested Telegram transport runner that polls updates and sends replies through the gateway
 - initial documentation and a design record trail
 
 The next recommended slice is to add first-run config scaffolding and then connect the next real transport or runtime layer.

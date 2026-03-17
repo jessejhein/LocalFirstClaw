@@ -213,6 +213,10 @@ These are not setup mistakes. They are current implementation limits:
   Prints the Telegram plugin manifest and config field descriptions.
 - `localfirstclaw plugin-skill telegram`
   Prints the Telegram plugin's setup and maintenance guidance on demand.
+- `localfirstclaw run-telegram --once`
+  Polls Telegram once and routes any matching updates through the gateway.
+- `localfirstclaw run-telegram`
+  Runs the Telegram polling loop continuously.
 
 ## Source Of Truth
 

@@ -100,9 +100,7 @@ def test_runner_routes_private_chat_message_and_sends_agent_reply(tmp_path: Path
 
     assert processed_count == 1
     assert client.requested_offsets == [None]
-    assert client.sent_messages == [
-        {"chat_id": 987654, "text": "[main] coordinator: Telegram reply"}
-    ]
+    assert client.sent_messages == [{"chat_id": 987654, "text": "[main] coordinator: Telegram reply"}]
     assert runner.last_update_id == 101
 
 
@@ -127,9 +125,7 @@ def test_runner_renders_gateway_command_result_back_to_telegram(tmp_path: Path) 
     processed_count = runner.process_once(now=datetime(2026, 3, 17, 18, 1, tzinfo=UTC))
 
     assert processed_count == 1
-    assert client.sent_messages == [
-        {"chat_id": 987654, "text": "Gateway: Endpoint routing status returned"}
-    ]
+    assert client.sent_messages == [{"chat_id": 987654, "text": "Gateway: Endpoint routing status returned"}]
 
 
 def test_runner_sends_to_telegram_thread_binding(tmp_path: Path) -> None:

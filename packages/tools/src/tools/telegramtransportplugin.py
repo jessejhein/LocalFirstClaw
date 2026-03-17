@@ -56,6 +56,9 @@ This plugin connects LocalFirstClaw to Telegram chats and Telegram message threa
 
 ## How To Configure
 
+- Create a bot with Telegram `@BotFather`.
+- Run `/newbot` in BotFather and choose a bot name and username.
+- Copy the bot token that BotFather returns.
 - Set `TELEGRAM_BOT_TOKEN` in the environment.
 - Create Telegram endpoint bindings that use one of:
   - `chat:<chat_id>`
@@ -64,6 +67,9 @@ This plugin connects LocalFirstClaw to Telegram chats and Telegram message threa
 
 ## How To Use
 
+- Send one message to the bot from the Telegram chat you want to bind.
+- Discover the Telegram chat or thread id from the incoming updates or transport logs.
+- Add the matching binding to the LocalFirstClaw endpoint config.
 - Telegram private chats normally map to `chat:<chat_id>`.
 - Telegram forum topics or message threads map to `thread:<chat_id>:<message_thread_id>`.
 - The plugin normalizes inbound Telegram text into gateway-friendly messages.
@@ -72,6 +78,7 @@ This plugin connects LocalFirstClaw to Telegram chats and Telegram message threa
 ## How To Maintain
 
 - Confirm `TELEGRAM_BOT_TOKEN` is present before starting the transport.
+- If you need to recreate the bot, repeat the BotFather steps and update the token source.
 - Verify the endpoint binding matches the intended Telegram chat or thread.
 - If transport behavior is unclear, query the plugin manifest and this maintenance skill.
 - Do that instead of keeping Telegram setup details permanently in agent context.

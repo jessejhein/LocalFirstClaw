@@ -7,9 +7,12 @@ import argparse
 import os
 from collections.abc import Sequence
 
+from telegramtransport import HttpTelegramApiClient, TelegramTransportRunner
 from tools import PluginRegistry, TelegramTransportPlugin
 
 from localfirstclaw.apppaths import AppPaths
+from localfirstclaw.bootstrap import build_agent_interface, build_gateway_router, build_journal
+from localfirstclaw.configloader import load_localfirstclaw_config
 from localfirstclaw.providercheck import check_chutes_connectivity
 from localfirstclaw.setupvalidation import validate_setup
 
@@ -38,6 +41,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "plugin-skill":
         return _run_plugin_skill(plugin_id=args.plugin_id)
+
+    if args.command == "run-telegram":
+        return _run_telegram(once=args.once, bot_token=args.bot_token, bot_token_env=args.bot_token_env)
 
     parser.error("unknown command")
     return 2
@@ -78,6 +84,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help="print plugin maintenance guidance on demand",
     )
     plugin_skill_parser.add_argument("plugin_id", choices=["telegram"])
+
+    run_telegram_parser = subparsers.add_parser(
+        "run-telegram",
+        help="run the Telegram transport against configured Telegram endpoints",
+    )
+    run_telegram_parser.add_argument("--once", action="store_true", help="poll and process one batch of updates only")
+    run_telegram_parser.add_argument("--bot-token")
+    run_telegram_parser.add_argument("--bot-token-env", default="TELEGRAM_BOT_TOKEN")
 
     return parser
 
@@ -162,3 +176,29 @@ def _run_plugin_skill(*, plugin_id: str) -> int:
 def _build_plugin_registry() -> PluginRegistry:
     """Construct the current plugin registry."""
     return PluginRegistry(plugins=[TelegramTransportPlugin()])
+
+
+def _run_telegram(*, once: bool, bot_token: str | None, bot_token_env: str) -> int:
+    """Run the Telegram transport using the current LocalFirstClaw config."""
+    resolved_bot_token = bot_token or os.environ.get(bot_token_env)
+    if not resolved_bot_token:
+        print(f"Missing Telegram bot token. Set {bot_token_env} or pass --bot-token.")
+        return 1
+
+    app_paths = AppPaths.from_environment()
+    config = load_localfirstclaw_config(config_root=app_paths.config_root)
+    journal = build_journal(app_paths=app_paths)
+    agent_interface = build_agent_interface(config=config, journal=journal)
+    router = build_gateway_router(config=config, journal=journal, agent_executor=agent_interface)
+    runner = TelegramTransportRunner(
+        router=router,
+        api_client=HttpTelegramApiClient(bot_token=resolved_bot_token),
+    )
+
+    if once:
+        processed_count = runner.process_once()
+        print(f"Processed {processed_count} Telegram update(s).")
+        return 0
+
+    while True:
+        runner.process_once()

@@ -92,6 +92,7 @@ Use the config tree for human-edited, git-trackable files. Use the data tree for
 6. Run `localfirstclaw validate-setup` to confirm the config is loadable.
 7. Run `localfirstclaw check-provider chutes` to confirm Chutes is reachable without using completion tokens.
 8. Run `localfirstclaw describe-plugin telegram` when the setup agent needs Telegram-specific configuration guidance.
+9. See [telegram.md](/home/openclaw/Projects/LocalFirstClaw/docs/telegram.md) for BotFather setup and endpoint binding examples.
 
 See [SETUP.md](/home/openclaw/Projects/LocalFirstClaw/SETUP.md) for the full setup sequence, [configuration.md](/home/openclaw/Projects/LocalFirstClaw/docs/configuration.md) for the current file formats, and [examples/config/LocalFirstClaw](/home/openclaw/Projects/LocalFirstClaw/examples/config/LocalFirstClaw) for starter templates.
 

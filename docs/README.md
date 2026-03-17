@@ -10,6 +10,7 @@ This directory is the working documentation set for the codebase.
 - `journal.md` - Public API and behavior for the journal package.
 - `plugins.md` - Plugin contract and on-demand self-documentation model.
 - `provider-chutes.md` - Chutes API notes, model discovery, and current model recommendations.
+- `telegram.md` - Telegram runner setup, BotFather steps, and endpoint binding examples.
 - `tui.md` - Local terminal interface behavior and rendering rules.
 - `SETUP.md` at repo root - First-run setup and validation steps for operators and other agents.
 - `implementation-status.md` - What exists now and what should come next.
