@@ -39,6 +39,34 @@ class HttpTelegramApiClient:
         document = response.json()
         return list(document.get("result", []))
 
+    def get_me(self) -> dict[str, object]:
+        """
+        Fetch bot identity details from the Telegram Bot API.
+
+        Returns:
+            Telegram `getMe` response document.
+        """
+        response = httpx.get(
+            f"{self.base_url}/bot{self.bot_token}/getMe",
+            timeout=30,
+        )
+        response.raise_for_status()
+        return dict(response.json())
+
+    def get_webhook_info(self) -> dict[str, object]:
+        """
+        Fetch current webhook configuration details from the Telegram Bot API.
+
+        Returns:
+            Telegram `getWebhookInfo` response document.
+        """
+        response = httpx.get(
+            f"{self.base_url}/bot{self.bot_token}/getWebhookInfo",
+            timeout=30,
+        )
+        response.raise_for_status()
+        return dict(response.json())
+
     def send_message(self, *, payload: dict[str, object]) -> dict[str, object]:
         """
         Send one outbound Telegram message.

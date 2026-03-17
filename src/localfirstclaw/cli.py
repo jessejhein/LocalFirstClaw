@@ -281,6 +281,10 @@ def _run_telegram(*, once: bool, bot_token: str | None, bot_token_env: str) -> i
 def _run_telegram_discover() -> int:
     """Poll Telegram once and print discovered chat/thread bindings."""
     discoveries = _discover_telegram_bindings()
+    if not discoveries:
+        _print_telegram_discovery_troubleshooting()
+        return 0
+
     print("Discovered Telegram bindings:")
     for discovery in discoveries:
         print(f"- {discovery['binding']}: {discovery['label']}")
@@ -379,6 +383,44 @@ def _discover_telegram_bindings() -> list[dict[str, str]]:
         label = _format_telegram_discovery_label(update=update, binding=inbound_message.endpoint_binding)
         discoveries.append({"binding": inbound_message.endpoint_binding, "label": label})
     return discoveries
+
+
+def _print_telegram_discovery_troubleshooting() -> None:
+    """
+    Print actionable diagnostics for empty Telegram discovery results.
+
+    This command is operator-facing, so it should explain the most likely
+    reasons `getUpdates` returned no discoverable messages.
+    """
+    environment = _load_telegram_runtime_environment()
+    client = _build_telegram_api_client(bot_token=environment["TELEGRAM_BOT_TOKEN"])
+
+    bot_username = "<unknown>"
+    try:
+        bot_document = client.get_me()
+        bot_result = bot_document.get("result", {})
+        if isinstance(bot_result, dict) and isinstance(bot_result.get("username"), str):
+            bot_username = bot_result["username"]
+    except Exception:
+        pass
+
+    webhook_url = ""
+    try:
+        webhook_document = client.get_webhook_info()
+        webhook_result = webhook_document.get("result", {})
+        if isinstance(webhook_result, dict) and isinstance(webhook_result.get("url"), str):
+            webhook_url = webhook_result["url"]
+    except Exception:
+        pass
+
+    print("No Telegram bindings were discovered.")
+    print(f"Bot identity appears reachable as: {bot_username}")
+    print("Send a fresh message to the bot, then run telegram-discover again.")
+    print("If this is a private chat, make sure you pressed Start in Telegram.")
+    print("If this is a group or forum topic, send a new message that the bot can actually receive.")
+    print("If this bot was configured with a webhook, getUpdates will not receive messages until that is removed.")
+    if webhook_url:
+        print(f"Webhook URL detected: {webhook_url}")
 
 
 def _load_telegram_runtime_environment() -> dict[str, str]:
