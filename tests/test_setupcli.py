@@ -376,6 +376,7 @@ def test_cli_plugin_skill_mentions_botfather_steps(capsys) -> None:
 
 def test_cli_telegram_discover_lists_bindings_from_updates(capsys, monkeypatch) -> None:
     """The discover command should show chat bindings seen in Telegram updates."""
+
     class FakeTelegramApiClient:
         """Fake client that returns two Telegram updates."""
 
@@ -406,7 +407,9 @@ def test_cli_telegram_discover_lists_bindings_from_updates(capsys, monkeypatch) 
             ]
 
     monkeypatch.setattr("localfirstclaw.cli._build_telegram_api_client", lambda **kwargs: FakeTelegramApiClient())
-    monkeypatch.setattr("localfirstclaw.cli._load_telegram_runtime_environment", lambda: {"TELEGRAM_BOT_TOKEN": "token"})
+    monkeypatch.setattr(
+        "localfirstclaw.cli._load_telegram_runtime_environment", lambda: {"TELEGRAM_BOT_TOKEN": "token"}
+    )
 
     exit_code = main(["telegram-discover"])
 
@@ -485,7 +488,9 @@ def test_cli_telegram_onboard_guides_user_through_discovery_and_binding(capsys, 
 
     monkeypatch.setattr("localfirstclaw.cli.AppPaths.from_environment", lambda: app_paths)
     monkeypatch.setattr("localfirstclaw.cli._build_telegram_api_client", lambda **kwargs: FakeTelegramApiClient())
-    monkeypatch.setattr("localfirstclaw.cli._load_telegram_runtime_environment", lambda: {"TELEGRAM_BOT_TOKEN": "token"})
+    monkeypatch.setattr(
+        "localfirstclaw.cli._load_telegram_runtime_environment", lambda: {"TELEGRAM_BOT_TOKEN": "token"}
+    )
 
     exit_code = main(
         [
@@ -506,3 +511,122 @@ def test_cli_telegram_onboard_guides_user_through_discovery_and_binding(capsys, 
     assert "Discovered Telegram bindings:" in captured.out
     assert "Bound telegram-main to chat:123456789" in captured.out
     assert "chat:123456789" in endpoints_yaml
+
+
+def test_cli_telegram_onboard_auto_binds_single_discovery(capsys, monkeypatch, tmp_path: Path) -> None:
+    """The onboard command should auto-bind when exactly one Telegram binding is discovered."""
+    app_paths = AppPaths.from_environment(
+        home_directory=tmp_path,
+        environment={
+            "XDG_CONFIG_HOME": str(tmp_path / "cfg"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+        },
+    )
+    app_paths.ensure_directories()
+    write_role_based_config(config_root=app_paths.config_root)
+    write_env_file(config_root=app_paths.config_root, content="TELEGRAM_BOT_TOKEN=token")
+
+    class FakeTelegramApiClient:
+        """Fake client that returns one discoverable update."""
+
+        def get_updates(self, *, offset, timeout_seconds):
+            del offset, timeout_seconds
+            return [
+                {
+                    "update_id": 1,
+                    "message": {
+                        "message_id": 10,
+                        "date": 1773312000,
+                        "text": "hi",
+                        "chat": {"id": 123456789, "type": "private"},
+                        "from": {"id": 111},
+                    },
+                }
+            ]
+
+    monkeypatch.setattr("localfirstclaw.cli.AppPaths.from_environment", lambda: app_paths)
+    monkeypatch.setattr("localfirstclaw.cli._build_telegram_api_client", lambda **kwargs: FakeTelegramApiClient())
+    monkeypatch.setattr(
+        "localfirstclaw.cli._load_telegram_runtime_environment", lambda: {"TELEGRAM_BOT_TOKEN": "token"}
+    )
+
+    exit_code = main(
+        [
+            "telegram-onboard",
+            "--endpoint-id",
+            "telegram-main",
+            "--channel",
+            "main",
+            "--allow-channel-switching",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    endpoints_yaml = (app_paths.config_root / "endpoints.yaml").read_text(encoding="utf-8")
+    assert exit_code == 0
+    assert "Only one Telegram binding was discovered. Binding it automatically." in captured.out
+    assert "Bound telegram-main to chat:123456789" in captured.out
+    assert "chat:123456789" in endpoints_yaml
+
+
+def test_cli_telegram_onboard_requires_selection_for_multiple_discoveries(capsys, monkeypatch, tmp_path: Path) -> None:
+    """The onboard command should ask for an explicit binding when multiple bindings are discovered."""
+    app_paths = AppPaths.from_environment(
+        home_directory=tmp_path,
+        environment={
+            "XDG_CONFIG_HOME": str(tmp_path / "cfg"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+        },
+    )
+    app_paths.ensure_directories()
+    write_role_based_config(config_root=app_paths.config_root)
+    write_env_file(config_root=app_paths.config_root, content="TELEGRAM_BOT_TOKEN=token")
+
+    class FakeTelegramApiClient:
+        """Fake client that returns two discoverable updates."""
+
+        def get_updates(self, *, offset, timeout_seconds):
+            del offset, timeout_seconds
+            return [
+                {
+                    "update_id": 1,
+                    "message": {
+                        "message_id": 10,
+                        "date": 1773312000,
+                        "text": "hi",
+                        "chat": {"id": 123456789, "type": "private"},
+                        "from": {"id": 111},
+                    },
+                },
+                {
+                    "update_id": 2,
+                    "message": {
+                        "message_id": 11,
+                        "date": 1773312001,
+                        "text": "hi2",
+                        "chat": {"id": 987654321, "type": "private"},
+                        "from": {"id": 222},
+                    },
+                },
+            ]
+
+    monkeypatch.setattr("localfirstclaw.cli.AppPaths.from_environment", lambda: app_paths)
+    monkeypatch.setattr("localfirstclaw.cli._build_telegram_api_client", lambda **kwargs: FakeTelegramApiClient())
+    monkeypatch.setattr(
+        "localfirstclaw.cli._load_telegram_runtime_environment", lambda: {"TELEGRAM_BOT_TOKEN": "token"}
+    )
+
+    exit_code = main(
+        [
+            "telegram-onboard",
+            "--endpoint-id",
+            "telegram-main",
+            "--channel",
+            "main",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "Multiple Telegram bindings were discovered." in captured.out
+    assert "Run telegram-onboard again with --binding" in captured.out
