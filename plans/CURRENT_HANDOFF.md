@@ -4,10 +4,11 @@ This document is the current implementation handoff for LocalFirstClaw. It is in
 
 ## Executive Summary
 
-LocalFirstClaw is still early-stage, but two real subsystems are now implemented:
+LocalFirstClaw is still early-stage, but three real subsystems are now implemented:
 
 - `journal`
 - the first `gateway` slice
+- the first `agentinterface` slice
 
 The repo started as a multi-package Python workspace with plans and scaffolding only. The completed execution slices established:
 
@@ -15,9 +16,10 @@ The repo started as a multi-package Python workspace with plans and scaffolding 
 - working workspace package resolution
 - a tested `journal` package
 - a tested in-memory `gateway` routing core with a minimal FastAPI shell
+- a tested `agentinterface` package with typed execution and journaling
 - initial documentation and a design record trail
 
-The next recommended slice is to connect gateway routing to real agent execution or to persistent config rather than adding more isolated scaffolding.
+The next recommended slice is to connect gateway routing to `agentinterface` and then move persistent config in behind those contracts.
 
 ## Current Repository State
 
@@ -27,6 +29,8 @@ Current branch:
 
 Recent commits, newest first:
 
+- `6da32d1` `Implement journaled agent interface execution`
+- `4ba351a` `Add failing tests for agent interface execution`
 - `a8c2ed3` `Implement gateway channel routing core`
 - `fd13d9b` `Add gateway routing plan and failing tests`
 - `4f4e9fa` `Document journal APIs and initial design decisions`
@@ -54,7 +58,8 @@ Implementation reality:
 
 - `journal` contains real code and tests
 - `gateway` contains real code and tests
-- `agentinterface`, `hypothalamus`, and `tools` are still scaffolds
+- `agentinterface` contains real code and tests
+- `hypothalamus` and `tools` are still scaffolds
 
 Important top-level files:
 
@@ -144,6 +149,22 @@ Implemented gateway package:
 Implemented gateway test file:
 
 - [packages/gateway/tests/test_gateway.py](/home/openclaw/Projects/LocalFirstClaw/packages/gateway/tests/test_gateway.py)
+
+Implemented agentinterface package:
+
+- [packages/agentinterface/src/agentinterface/__init__.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/__init__.py)
+- [packages/agentinterface/src/agentinterface/agentconfig.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/agentconfig.py)
+- [packages/agentinterface/src/agentinterface/agentinterface.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/agentinterface.py)
+- [packages/agentinterface/src/agentinterface/agentmessage.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/agentmessage.py)
+- [packages/agentinterface/src/agentinterface/agentrequest.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/agentrequest.py)
+- [packages/agentinterface/src/agentinterface/agentresponse.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/agentresponse.py)
+- [packages/agentinterface/src/agentinterface/agentrunerror.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/agentrunerror.py)
+- [packages/agentinterface/src/agentinterface/modelclient.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/modelclient.py)
+- [packages/agentinterface/src/agentinterface/modelresult.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/src/agentinterface/modelresult.py)
+
+Implemented agentinterface test file:
+
+- [packages/agentinterface/tests/test_agentinterface.py](/home/openclaw/Projects/LocalFirstClaw/packages/agentinterface/tests/test_agentinterface.py)
 
 ## Journal Package Contract
 
@@ -258,6 +279,34 @@ Current gateway event types:
 - `gateway.command_rejected`
 - `gateway.message_routed`
 
+## AgentInterface Package Contract
+
+Agentinterface public API:
+
+- `AgentConfig`
+- `AgentInterface`
+- `AgentMessage`
+- `AgentRequest`
+- `AgentResponse`
+- `AgentRunError`
+- `ModelClient`
+- `ModelResult`
+
+Current agentinterface semantics:
+
+- requests target a named agent id
+- agent configs supply `model` and `system_prompt`
+- request correlation ids are generated if missing
+- the system prompt is prepended before model execution
+- execution lifecycle is journaled
+- backend failures surface as `AgentRunError`
+
+Current agentinterface event types:
+
+- `agentinterface.run_started`
+- `agentinterface.run_completed`
+- `agentinterface.run_failed`
+
 ## Verification Status
 
 These checks passed at the end of the implementation slices:
@@ -268,6 +317,9 @@ These checks passed at the end of the implementation slices:
 - `.venv/bin/pytest packages/gateway/tests/test_gateway.py -q`
 - `.venv/bin/ruff check packages/gateway/src packages/gateway/tests`
 - `.venv/bin/black --check packages/gateway/src packages/gateway/tests`
+- `.venv/bin/pytest packages/agentinterface/tests/test_agentinterface.py -q`
+- `.venv/bin/ruff check packages/agentinterface/src packages/agentinterface/tests`
+- `.venv/bin/black --check packages/agentinterface/src packages/agentinterface/tests`
 
 The journal tests currently cover:
 
@@ -292,11 +344,20 @@ The gateway tests currently cover:
 - journaling gateway actions
 - the minimal FastAPI route handlers
 
+The agentinterface tests currently cover:
+
+- prepending the configured system prompt
+- returning a typed response
+- journaling run start and completion
+- journaling failures and raising `AgentRunError`
+- async wrapper behavior
+
 ## Documentation Already Written
 
 Main docs:
 
 - [docs/README.md](/home/openclaw/Projects/LocalFirstClaw/docs/README.md)
+- [docs/agentinterface.md](/home/openclaw/Projects/LocalFirstClaw/docs/agentinterface.md)
 - [docs/journal.md](/home/openclaw/Projects/LocalFirstClaw/docs/journal.md)
 - [docs/gateway.md](/home/openclaw/Projects/LocalFirstClaw/docs/gateway.md)
 - [docs/implementation-status.md](/home/openclaw/Projects/LocalFirstClaw/docs/implementation-status.md)
@@ -308,7 +369,6 @@ Use those as the current source of truth for the implemented packages. This hand
 
 Still scaffold-only or absent:
 
-- `agentinterface` behavior
 - `hypothalamus` runtime
 - `tools` behavior
 - file-based assistant `workspace/`
@@ -319,20 +379,21 @@ Still scaffold-only or absent:
 - provider fallback routing
 - real transport adapters
 - persistent gateway config loading
-- agent execution behind routed gateway messages
+- gateway integration that actually invokes `agentinterface`
+- real LiteLLM-backed model execution
 
 ## Recommended Next Slice
 
 Recommended priority:
 
-1. connect routed gateway messages to the first real agent execution path
-2. move gateway endpoint/channel definitions into persistent config
-3. keep journaling and docs updated as those interfaces stabilize
+1. connect routed gateway messages to `agentinterface.run()`
+2. move gateway endpoint/channel and agent definitions into persistent config
+3. add a real LiteLLM-backed `ModelClient`
 
 Preferred next target:
 
-- `agentinterface` if the goal is to define the runtime call into an agent from a routed gateway message
-- persistent gateway config if the goal is to lock user-facing routing behavior before agent execution
+- gateway-to-agentinterface integration if the goal is to reach the first end-to-end routed agent reply
+- persistent config if the goal is to lock user-facing routing and agent definitions before live execution
 
 ## Suggested Execution Sequence For The Next Agent
 
@@ -356,6 +417,7 @@ Preferred next target:
 - do not introduce speculative package coupling
 - do not add retention/compression behavior to the journal unless that is the explicit task
 - keep endpoint state runtime-only unless the task explicitly adds persistent config handling
+- keep agent execution behind the typed `AgentRequest`/`AgentResponse` boundary
 - keep commit granularity aligned with the TDD flow in `AGENTS.md`
 
 ## If The Next Agent Needs To Recreate The Working Environment
@@ -372,4 +434,4 @@ Then use tools from `.venv/bin/`.
 
 ## Short Resume Prompt For Another Agent
 
-LocalFirstClaw is a multi-package Python workspace. `journal` and the first `gateway` slice are implemented and tested. The journal is a daily-rotated, append-only JSONL store with structured events, deterministic time-filter queries, in-process thread safety, and async-compatible wrappers over the sync core. The gateway models interface endpoints, channels, endpoint active-channel switching with bare `@channel`, and gateway-owned `!CMD` commands. The next task should connect gateway routing to real agent execution or persistent config using TDD and commit-first workflow. Read `AGENTS.md`, `plans/CURRENT_HANDOFF.md`, and the docs under `docs/` before changing anything.
+LocalFirstClaw is a multi-package Python workspace. `journal`, the first `gateway` slice, and the first `agentinterface` slice are implemented and tested. The journal is a daily-rotated, append-only JSONL store with structured events, deterministic time-filter queries, in-process thread safety, and async-compatible wrappers over the sync core. The gateway models interface endpoints, channels, endpoint active-channel switching with bare `@channel`, and gateway-owned `!CMD` commands. The agentinterface package provides a typed execution contract, agent registry lookup, pluggable model client protocol, and journaled run lifecycle. The next task should connect gateway routing to `AgentInterface.run()` or move the definitions into persistent config using TDD and commit-first workflow. Read `AGENTS.md`, `plans/CURRENT_HANDOFF.md`, and the docs under `docs/` before changing anything.

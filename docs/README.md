@@ -4,6 +4,7 @@ This directory is the working documentation set for the codebase.
 
 ## Current Documents
 
+- `agentinterface.md` - Agent execution contract and journaling behavior.
 - `gateway.md` - Gateway routing model, commands, and API surface.
 - `journal.md` - Public API and behavior for the journal package.
 - `implementation-status.md` - What exists now and what should come next.
