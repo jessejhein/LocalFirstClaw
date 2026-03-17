@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from localfirstclaw import AppPaths
+from localfirstclaw import cli as cli_module
 from localfirstclaw.cli import main
 from localfirstclaw.providercheck import check_chutes_connectivity
 from localfirstclaw.setupvalidation import validate_setup
@@ -477,6 +478,45 @@ def test_cli_telegram_discover_reports_webhook_blocker(capsys, monkeypatch) -> N
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "Webhook URL detected: https://example.com/webhook" in captured.out
+
+
+def test_run_telegram_continuous_mode_prints_startup_message(capsys, monkeypatch, tmp_path: Path) -> None:
+    """Continuous Telegram polling should announce itself before entering the loop."""
+    app_paths = AppPaths.from_environment(
+        home_directory=tmp_path,
+        environment={
+            "XDG_CONFIG_HOME": str(tmp_path / "cfg"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+        },
+    )
+    app_paths.ensure_directories()
+    write_role_based_config(config_root=app_paths.config_root)
+    write_env_file(config_root=app_paths.config_root, content="TELEGRAM_BOT_TOKEN=token\nCHUTES_API_KEY=test-key")
+
+    class FakeRunner:
+        """Fake runner that aborts after the first polling call."""
+
+        def __init__(self, *, router, api_client) -> None:
+            del router, api_client
+
+        def process_once(self) -> int:
+            raise KeyboardInterrupt()
+
+    monkeypatch.setattr("localfirstclaw.cli.AppPaths.from_environment", lambda: app_paths)
+    monkeypatch.setattr("localfirstclaw.cli.build_journal", lambda app_paths: object())
+    monkeypatch.setattr("localfirstclaw.cli.build_agent_interface", lambda **kwargs: object())
+    monkeypatch.setattr("localfirstclaw.cli.build_gateway_router", lambda **kwargs: object())
+    monkeypatch.setattr("localfirstclaw.cli.HttpTelegramApiClient", lambda bot_token: {"bot_token": bot_token})
+    monkeypatch.setattr("localfirstclaw.cli.TelegramTransportRunner", FakeRunner)
+
+    try:
+        cli_module._run_telegram(once=False, bot_token=None, bot_token_env="TELEGRAM_BOT_TOKEN")
+    except KeyboardInterrupt:
+        pass
+
+    captured = capsys.readouterr()
+    assert "Telegram polling started." in captured.out
+    assert "Press Ctrl+C to stop." in captured.out
 
 
 def test_cli_telegram_bind_writes_endpoint_config(capsys, monkeypatch, tmp_path: Path) -> None:
