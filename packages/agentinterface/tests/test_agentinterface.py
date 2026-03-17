@@ -7,8 +7,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from journal import Journal, JournalLevel, JournalQuery
-
 from agentinterface import (
     AgentConfig,
     AgentInterface,
@@ -17,6 +15,7 @@ from agentinterface import (
     AgentRunError,
     ModelResult,
 )
+from journal import Journal, JournalLevel, JournalQuery
 
 
 class FakeModelClient:
