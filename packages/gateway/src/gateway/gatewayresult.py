@@ -16,6 +16,8 @@ class GatewayResult:
     target_channel_id: str | None = None
     target_agent_id: str | None = None
     command_name: str | None = None
+    output_text: str | None = None
+    correlation_id: str | None = None
 
     def to_dict(self) -> dict[str, str | None]:
         """Convert the result to a JSON-friendly dictionary."""

@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
+from agentinterface import AgentMessage, AgentRequest, AgentResponse
 from journal import Journal, JournalEvent, JournalLevel
 
 from gateway.channelconfig import ChannelConfig
@@ -27,6 +28,7 @@ class GatewayRouter:
         channels: dict[str, ChannelConfig],
         endpoints: dict[str, InterfaceEndpointConfig],
         journal: Journal,
+        agent_executor: object | None = None,
     ):
         """
         Create a gateway router with in-memory endpoint state.
@@ -35,10 +37,12 @@ class GatewayRouter:
             channels: Known internal channels keyed by channel id.
             endpoints: Known interface endpoints keyed by endpoint id.
             journal: Journal used for operational event logging.
+            agent_executor: Optional execution backend with a run(request=...) method.
         """
         self.channels = channels
         self.endpoints = endpoints
         self.journal = journal
+        self.agent_executor = agent_executor
         self.runtime_states = {
             endpoint_id: EndpointRuntimeState(active_channel_id=config.primary_channel_id)
             for endpoint_id, config in endpoints.items()
@@ -395,6 +399,67 @@ class GatewayRouter:
             },
         )
 
+        if self.agent_executor is None:
+            return result
+
+        return self._execute_agent(
+            endpoint_id=endpoint_id,
+            text=text,
+            user_id=user_id,
+            timestamp=timestamp,
+            routed_result=result,
+        )
+
+    def _execute_agent(
+        self,
+        *,
+        endpoint_id: str,
+        text: str,
+        user_id: str,
+        timestamp: datetime,
+        routed_result: GatewayResult,
+    ) -> GatewayResult:
+        """
+        Execute the routed agent when an executor is configured.
+
+        Args:
+            endpoint_id: Source endpoint identifier.
+            text: Plain message content routed to the agent.
+            user_id: Transport-local user identifier.
+            timestamp: Time the message entered the gateway.
+            routed_result: Routing result describing the target channel and agent.
+
+        Returns:
+            A gateway result containing the agent reply content.
+        """
+        agent_response = self.agent_executor.run(
+            request=AgentRequest(
+                agent_id=routed_result.target_agent_id,
+                channel_id=routed_result.target_channel_id,
+                user_id=user_id,
+                endpoint_id=endpoint_id,
+                timestamp=timestamp,
+                messages=[AgentMessage(role="user", content=text)],
+            )
+        )
+        result = GatewayResult(
+            kind="agent_responded",
+            message="Agent responded to routed message",
+            endpoint_id=endpoint_id,
+            primary_channel_id=routed_result.primary_channel_id,
+            active_channel_id=routed_result.active_channel_id,
+            target_channel_id=routed_result.target_channel_id,
+            target_agent_id=routed_result.target_agent_id,
+            output_text=agent_response.output_text,
+            correlation_id=agent_response.correlation_id,
+        )
+        self._journal_agent_response(
+            timestamp=timestamp,
+            endpoint_id=endpoint_id,
+            user_id=user_id,
+            response=agent_response,
+        )
+
         return result
 
     def _command_error(
@@ -483,6 +548,40 @@ class GatewayRouter:
                 "result_kind": result.kind,
                 "active_channel_id": result.active_channel_id,
                 "target_channel_id": result.target_channel_id,
+            },
+        )
+
+    def _journal_agent_response(
+        self,
+        *,
+        timestamp: datetime,
+        endpoint_id: str,
+        user_id: str,
+        response: AgentResponse,
+    ) -> None:
+        """
+        Write a journal event for a completed gateway-triggered agent response.
+
+        Args:
+            timestamp: Time the response was returned to the gateway.
+            endpoint_id: Source endpoint identifier.
+            user_id: Transport-local user identifier.
+            response: Structured agent response produced by the executor.
+        """
+        self._journal_event(
+            timestamp=timestamp,
+            event_type="gateway.agent_responded",
+            level=JournalLevel.INFO,
+            agent_id=response.agent_id,
+            message="Gateway received agent response",
+            tags=["gateway", "routing"],
+            payload={
+                "endpoint_id": endpoint_id,
+                "user_id": user_id,
+                "channel_id": response.channel_id,
+                "model_name": response.model_name,
+                "finish_reason": response.finish_reason,
+                "correlation_id": response.correlation_id,
             },
         )
 

@@ -4,7 +4,7 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
-from agentinterface import AgentConfig, AgentInterface, AgentMessage, AgentResponse
+from agentinterface import AgentMessage, AgentResponse
 from gateway import (
     ChannelConfig,
     GatewayAppDependencies,
