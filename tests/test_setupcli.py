@@ -455,6 +455,39 @@ def test_cli_telegram_bind_writes_endpoint_config(capsys, monkeypatch, tmp_path:
     assert "primary_channel_id: main" in endpoints_yaml
 
 
+def test_cli_telegram_bind_defaults_to_main_channel_and_switching(capsys, monkeypatch, tmp_path: Path) -> None:
+    """The bind command should default to the main channel with switching enabled."""
+    app_paths = AppPaths.from_environment(
+        home_directory=tmp_path,
+        environment={
+            "XDG_CONFIG_HOME": str(tmp_path / "cfg"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+        },
+    )
+    app_paths.ensure_directories()
+    write_role_based_config(config_root=app_paths.config_root)
+    write_env_file(config_root=app_paths.config_root, content="TELEGRAM_BOT_TOKEN=token")
+
+    monkeypatch.setattr("localfirstclaw.cli.AppPaths.from_environment", lambda: app_paths)
+
+    exit_code = main(
+        [
+            "telegram-bind",
+            "--endpoint-id",
+            "telegram-main",
+            "--binding",
+            "chat:123456789",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    endpoints_yaml = (app_paths.config_root / "endpoints.yaml").read_text(encoding="utf-8")
+    assert exit_code == 0
+    assert "Bound telegram-main to chat:123456789" in captured.out
+    assert "primary_channel_id: main" in endpoints_yaml
+    assert "allow_channel_switching: true" in endpoints_yaml
+
+
 def test_cli_telegram_onboard_guides_user_through_discovery_and_binding(capsys, monkeypatch, tmp_path: Path) -> None:
     """The onboard command should discover a binding and write the requested endpoint."""
     app_paths = AppPaths.from_environment(
@@ -567,6 +600,62 @@ def test_cli_telegram_onboard_auto_binds_single_discovery(capsys, monkeypatch, t
     assert "Only one Telegram binding was discovered. Binding it automatically." in captured.out
     assert "Bound telegram-main to chat:123456789" in captured.out
     assert "chat:123456789" in endpoints_yaml
+    assert "primary_channel_id: main" in endpoints_yaml
+    assert "allow_channel_switching: true" in endpoints_yaml
+
+
+def test_cli_telegram_onboard_defaults_to_main_channel_and_switching(capsys, monkeypatch, tmp_path: Path) -> None:
+    """The onboard command should default to the main channel with switching enabled."""
+    app_paths = AppPaths.from_environment(
+        home_directory=tmp_path,
+        environment={
+            "XDG_CONFIG_HOME": str(tmp_path / "cfg"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+        },
+    )
+    app_paths.ensure_directories()
+    write_role_based_config(config_root=app_paths.config_root)
+    write_env_file(config_root=app_paths.config_root, content="TELEGRAM_BOT_TOKEN=token")
+
+    class FakeTelegramApiClient:
+        """Fake client that returns one discoverable update."""
+
+        def get_updates(self, *, offset, timeout_seconds):
+            del offset, timeout_seconds
+            return [
+                {
+                    "update_id": 1,
+                    "message": {
+                        "message_id": 10,
+                        "date": 1773312000,
+                        "text": "hi",
+                        "chat": {"id": 123456789, "type": "private"},
+                        "from": {"id": 111},
+                    },
+                }
+            ]
+
+    monkeypatch.setattr("localfirstclaw.cli.AppPaths.from_environment", lambda: app_paths)
+    monkeypatch.setattr("localfirstclaw.cli._build_telegram_api_client", lambda **kwargs: FakeTelegramApiClient())
+    monkeypatch.setattr(
+        "localfirstclaw.cli._load_telegram_runtime_environment", lambda: {"TELEGRAM_BOT_TOKEN": "token"}
+    )
+
+    exit_code = main(
+        [
+            "telegram-onboard",
+            "--endpoint-id",
+            "telegram-main",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    endpoints_yaml = (app_paths.config_root / "endpoints.yaml").read_text(encoding="utf-8")
+    assert exit_code == 0
+    assert "Only one Telegram binding was discovered. Binding it automatically." in captured.out
+    assert "Bound telegram-main to chat:123456789" in captured.out
+    assert "primary_channel_id: main" in endpoints_yaml
+    assert "allow_channel_switching: true" in endpoints_yaml
 
 
 def test_cli_telegram_onboard_requires_selection_for_multiple_discoveries(capsys, monkeypatch, tmp_path: Path) -> None:
