@@ -4,6 +4,7 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
+from agentinterface import AgentConfig, AgentInterface, AgentMessage, AgentResponse
 from gateway import (
     ChannelConfig,
     GatewayAppDependencies,
@@ -15,7 +16,27 @@ from gateway import (
 from journal import Journal, JournalLevel, JournalQuery
 
 
-def build_router(tmp_path: Path) -> tuple[GatewayRouter, Journal]:
+class FakeAgentExecutor:
+    """Simple fake executor used to test gateway-to-agent integration."""
+
+    def __init__(self) -> None:
+        """Initialize call capture and canned response state."""
+        self.calls: list[object] = []
+
+    def run(self, *, request) -> AgentResponse:
+        """Capture the request and return a fixed agent response."""
+        self.calls.append(request)
+        return AgentResponse(
+            agent_id=request.agent_id,
+            channel_id=request.channel_id,
+            correlation_id=request.correlation_id or "generated",
+            output_text="Coder response",
+            model_name="fake-model",
+            finish_reason="stop",
+        )
+
+
+def build_router(tmp_path: Path, agent_executor: object | None = None) -> tuple[GatewayRouter, Journal]:
     """Create a gateway router with a small in-memory configuration."""
     journal = Journal(root_directory=tmp_path / "journal")
     router = GatewayRouter(
@@ -41,6 +62,7 @@ def build_router(tmp_path: Path) -> tuple[GatewayRouter, Journal]:
             ),
         },
         journal=journal,
+        agent_executor=agent_executor,
     )
     return router, journal
 
@@ -93,6 +115,41 @@ def test_plain_messages_route_to_active_channel(tmp_path: Path) -> None:
     assert response.target_channel_id == "game"
     assert response.target_agent_id == "coder"
     assert router.get_endpoint_status(endpoint_id="telegram-main").active_channel_id == "game"
+
+
+def test_plain_messages_invoke_agent_executor_when_available(tmp_path: Path) -> None:
+    """Plain routed messages call the agent executor and return the reply."""
+    fake_executor = FakeAgentExecutor()
+    router, journal = build_router(tmp_path=tmp_path, agent_executor=fake_executor)
+    timestamp = datetime(2026, 3, 17, 12, 1, tzinfo=UTC)
+
+    response = router.handle_message(
+        endpoint_id="telegram-main",
+        text="How is the build going?",
+        user_id="user-1",
+        timestamp=timestamp,
+    )
+
+    assert response.kind == "agent_responded"
+    assert response.target_channel_id == "main"
+    assert response.target_agent_id == "main"
+    assert response.output_text == "Coder response"
+    assert len(fake_executor.calls) == 1
+    sent_request = fake_executor.calls[0]
+    assert sent_request.agent_id == "main"
+    assert sent_request.channel_id == "main"
+    assert sent_request.endpoint_id == "telegram-main"
+    assert sent_request.messages == [AgentMessage(role="user", content="How is the build going?")]
+
+    events = journal.query_recent(
+        query=JournalQuery(
+            since=timestamp,
+            until=timestamp,
+            levels=[JournalLevel.INFO],
+            tags=["gateway"],
+        )
+    )
+    assert "gateway.agent_responded" in {event.event_type for event in events}
 
 
 def test_reset_channel_restores_primary_channel(tmp_path: Path) -> None:

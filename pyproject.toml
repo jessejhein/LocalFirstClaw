@@ -6,6 +6,7 @@ agentinterface = { workspace = true }
 gateway = { workspace = true }
 hypothalamus = { workspace = true }
 journal = { workspace = true }
+tui = { workspace = true }
 tools = { workspace = true }
 
 [project]
