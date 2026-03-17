@@ -55,11 +55,14 @@ Recommended use:
 ```yaml
 agents:
   - agent_id: coordinator
-    model: kimi
-    system_prompt: You are the main assistant.
-  - agent_id: coder
-    model: kimi
-    system_prompt: You are the coding assistant.
+    model: premium
+    system_prompt: You coordinate the system and the user-facing main channel.
+  - agent_id: coder-relay
+    model: relay
+    system_prompt: You relay coding session updates and keep the user informed.
+  - agent_id: heartbeat
+    model: cheap
+    system_prompt: You handle short autonomous heartbeat and maintenance tasks.
 ```
 
 `model` can be either a direct provider-qualified model name or a configured LiteLLM alias from `models.yaml`.
@@ -70,8 +73,10 @@ agents:
 channels:
   - channel_id: main
     default_agent_id: coordinator
-  - channel_id: game
-    default_agent_id: coder
+  - channel_id: lfc
+    default_agent_id: coder-relay
+  - channel_id: ops
+    default_agent_id: heartbeat
 ```
 
 ### `endpoints.yaml`
@@ -94,9 +99,17 @@ endpoints:
 
 ```yaml
 aliases:
-  kimi:
-    provider_model: openai/kimi-k2
-    api_base: https://llm.example.test/v1
+  premium:
+    provider_model: openai/moonshotai/Kimi-K2.5-TEE
+    api_base: https://llm.chutes.ai/v1
+    api_key_env: CHUTES_API_KEY
+  relay:
+    provider_model: openai/Qwen/Qwen3-30B-A3B
+    api_base: https://llm.chutes.ai/v1
+    api_key_env: CHUTES_API_KEY
+  cheap:
+    provider_model: openai/openai/gpt-oss-20b
+    api_base: https://llm.chutes.ai/v1
     api_key_env: CHUTES_API_KEY
 ```
 
@@ -136,6 +149,20 @@ Current behavior:
 - journal writes go to the external data root
 - the default agent executor uses `LiteLLMModelClient`
 - model aliases are resolved before the LiteLLM call
+
+## Setup Validation Commands
+
+The root package now installs the `localfirstclaw` CLI.
+
+Current commands:
+
+- `localfirstclaw validate-setup`
+- `localfirstclaw validate-setup --check-providers`
+- `localfirstclaw check-provider chutes`
+
+The default validation command checks local config and required secrets only.
+
+The Chutes provider check and `--check-providers` path use the provider metadata endpoint rather than a chat completion endpoint, so they should not spend completion tokens.
 
 ## Current Limitations
 

@@ -1,5 +1,7 @@
 channels:
   - channel_id: main
     default_agent_id: coordinator
-  - channel_id: game
-    default_agent_id: coder
+  - channel_id: lfc
+    default_agent_id: coder-relay
+  - channel_id: ops
+    default_agent_id: heartbeat

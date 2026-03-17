@@ -59,6 +59,16 @@ for model in data['data']:
 PY
 ```
 
+### LocalFirstClaw Zero-Token Check
+
+After setup, the preferred operator check is:
+
+```bash
+localfirstclaw check-provider chutes
+```
+
+This uses the Chutes `/models` endpoint and is intended to confirm reachability without spending completion tokens.
+
 ### Existing OpenClaw Helper Script
 
 There is also a local helper script at:
@@ -167,3 +177,12 @@ aliases:
 ```
 
 That was proven to work end to end on 2026-03-17.
+
+## Validation Strategy
+
+Use two levels of validation:
+
+- `localfirstclaw check-provider chutes`
+  Zero-token metadata check against `/models`
+- explicit completion test
+  Paid or metered model invocation used only when you want to verify an actual response path

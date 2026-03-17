@@ -48,8 +48,7 @@ agents:
   - agent_id: heartbeat
     model: cheap
     system_prompt: You handle brief heartbeat tasks.
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     (config_root / "channels.yaml").write_text(
@@ -61,8 +60,7 @@ channels:
     default_agent_id: coder-relay
   - channel_id: ops
     default_agent_id: heartbeat
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     (config_root / "endpoints.yaml").write_text(
@@ -73,8 +71,7 @@ endpoints:
     binding: chat:main
     primary_channel_id: main
     allow_channel_switching: true
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
     (config_root / "models.yaml").write_text(
@@ -92,8 +89,7 @@ aliases:
     provider_model: openai/openai/gpt-oss-20b
     api_base: https://llm.chutes.ai/v1
     api_key_env: CHUTES_API_KEY
-""".strip()
-        + "\n",
+""".strip() + "\n",
         encoding="utf-8",
     )
 
@@ -172,6 +168,7 @@ def test_validate_setup_can_check_providers_without_completion_calls(tmp_path: P
 
 def test_check_chutes_connectivity_returns_model_count() -> None:
     """The Chutes provider check should parse the model catalog response."""
+
     def fake_urlopen(request, timeout: int) -> FakeHttpResponse:
         """Return a fake catalog with one model entry."""
         del timeout
@@ -215,6 +212,7 @@ def test_cli_validate_setup_reports_success(capsys, monkeypatch, tmp_path: Path)
 
 def test_cli_check_provider_chutes_reports_success(capsys, monkeypatch) -> None:
     """The CLI should support a zero-token Chutes provider check command."""
+
     def fake_check(*, api_key: str, api_base: str, urlopen=None):
         """Return a deterministic success result for the CLI."""
         del urlopen

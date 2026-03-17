@@ -30,7 +30,7 @@ class LiteLLMModelClient:
             environment: Optional environment override used for API key lookup.
         """
         self.aliases = aliases or {}
-        self.environment = dict(environment or os.environ)
+        self.environment = dict(os.environ if environment is None else environment)
 
     def complete(self, *, model: str, messages: list[AgentMessage]) -> ModelResult:
         """

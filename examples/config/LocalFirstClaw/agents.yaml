@@ -1,7 +1,10 @@
 agents:
   - agent_id: coordinator
-    model: kimi
-    system_prompt: You are the main assistant.
-  - agent_id: coder
-    model: kimi
-    system_prompt: You are the coding assistant.
+    model: premium
+    system_prompt: You coordinate the system and the user-facing main channel.
+  - agent_id: coder-relay
+    model: relay
+    system_prompt: You relay coding session updates and keep the user informed.
+  - agent_id: heartbeat
+    model: cheap
+    system_prompt: You handle short autonomous heartbeat and maintenance tasks.

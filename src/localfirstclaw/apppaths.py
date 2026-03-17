@@ -39,7 +39,7 @@ class AppPaths:
         Returns:
             Fully resolved LocalFirstClaw path set.
         """
-        env = dict(environment or os.environ)
+        env = dict(os.environ if environment is None else environment)
         home = home_directory or Path.home()
         config_home = Path(env["XDG_CONFIG_HOME"]) if "XDG_CONFIG_HOME" in env else home / ".config"
         data_home = Path(env["XDG_DATA_HOME"]) if "XDG_DATA_HOME" in env else home / ".local" / "share"

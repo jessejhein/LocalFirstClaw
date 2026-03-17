@@ -24,6 +24,9 @@ dependencies = [
     "journal>=0.1.0",
 ]
 
+[project.scripts]
+localfirstclaw = "localfirstclaw.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",

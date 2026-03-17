@@ -1,4 +1,16 @@
 aliases:
+  premium:
+    provider_model: openai/moonshotai/Kimi-K2.5-TEE
+    api_base: https://llm.chutes.ai/v1
+    api_key_env: CHUTES_API_KEY
+  relay:
+    provider_model: openai/Qwen/Qwen3-30B-A3B
+    api_base: https://llm.chutes.ai/v1
+    api_key_env: CHUTES_API_KEY
+  cheap:
+    provider_model: openai/openai/gpt-oss-20b
+    api_base: https://llm.chutes.ai/v1
+    api_key_env: CHUTES_API_KEY
   kimi:
     provider_model: openai/kimi-k2
     api_base: https://llm.example.test/v1

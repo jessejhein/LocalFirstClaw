@@ -10,6 +10,7 @@ This directory is the working documentation set for the codebase.
 - `journal.md` - Public API and behavior for the journal package.
 - `provider-chutes.md` - Chutes API notes, model discovery, and current model recommendations.
 - `tui.md` - Local terminal interface behavior and rendering rules.
+- `SETUP.md` at repo root - First-run setup and validation steps for operators and other agents.
 - `implementation-status.md` - What exists now and what should come next.
 - `decisions/0001-journal-foundation.md` - Why the project starts with the journal package.
 
