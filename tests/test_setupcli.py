@@ -245,3 +245,24 @@ def test_cli_check_provider_chutes_reports_success(capsys, monkeypatch) -> None:
     assert exit_code == 0
     assert "Provider check passed for chutes." in captured.out
     assert "Models available: 42" in captured.out
+
+
+def test_cli_describe_plugin_reports_manifest(capsys) -> None:
+    """The CLI should expose plugin documentation on demand."""
+    exit_code = main(["describe-plugin", "telegram"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Plugin: telegram" in captured.out
+    assert "Display name: Telegram Transport" in captured.out
+    assert "Capabilities: transport, self_describe, maintenance_skill" in captured.out
+
+
+def test_cli_plugin_skill_reports_maintenance_guidance(capsys) -> None:
+    """The CLI should expose plugin maintenance guidance without loading it into every prompt."""
+    exit_code = main(["plugin-skill", "telegram"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Telegram Transport Plugin" in captured.out
+    assert "How To Configure" in captured.out
