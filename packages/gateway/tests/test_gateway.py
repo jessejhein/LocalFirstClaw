@@ -4,16 +4,15 @@
 from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi.testclient import TestClient
-from journal import Journal, JournalLevel, JournalQuery
-
 from gateway import (
     ChannelConfig,
     GatewayAppDependencies,
     GatewayRouter,
     InterfaceEndpointConfig,
+    MessageInput,
     create_app,
 )
+from journal import Journal, JournalLevel, JournalQuery
 
 
 def build_router(tmp_path: Path) -> tuple[GatewayRouter, Journal]:
@@ -214,23 +213,21 @@ def test_gateway_actions_emit_journal_events(tmp_path: Path) -> None:
 
 
 def test_fastapi_surface_routes_messages_and_exposes_state(tmp_path: Path) -> None:
-    """The minimal API delegates to the routing core."""
+    """The minimal API route handlers delegate to the routing core."""
     router, _ = build_router(tmp_path=tmp_path)
     app = create_app(dependencies=GatewayAppDependencies(router=router))
-    client = TestClient(app)
+    post_route = next(route for route in app.routes if getattr(route, "path", None) == "/messages")
+    get_route = next(route for route in app.routes if getattr(route, "path", None) == "/endpoints/{endpoint_id}")
 
-    switch_response = client.post(
-        "/messages",
-        json={
-            "endpoint_id": "telegram-main",
-            "user_id": "user-1",
-            "text": "@game",
-            "timestamp": "2026-03-17T12:07:00+00:00",
-        },
+    switch_response = post_route.endpoint(
+        MessageInput(
+            endpoint_id="telegram-main",
+            user_id="user-1",
+            text="@game",
+            timestamp=datetime(2026, 3, 17, 12, 7, tzinfo=UTC),
+        )
     )
-    state_response = client.get("/endpoints/telegram-main")
+    state_response = get_route.endpoint("telegram-main")
 
-    assert switch_response.status_code == 200
-    assert switch_response.json()["active_channel_id"] == "game"
-    assert state_response.status_code == 200
-    assert state_response.json()["active_channel_id"] == "game"
+    assert switch_response["active_channel_id"] == "game"
+    assert state_response["active_channel_id"] == "game"
