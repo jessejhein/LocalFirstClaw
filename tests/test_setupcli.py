@@ -94,6 +94,11 @@ aliases:
     )
 
 
+def write_env_file(config_root: Path, content: str) -> None:
+    """Write a LocalFirstClaw .env file under the config root."""
+    (config_root / ".env").write_text(content.strip() + "\n", encoding="utf-8")
+
+
 def test_validate_setup_succeeds_with_role_based_config(tmp_path: Path) -> None:
     """Setup validation should pass when config and required env vars exist."""
     app_paths = AppPaths.from_environment(
@@ -132,6 +137,25 @@ def test_validate_setup_reports_missing_required_env_vars(tmp_path: Path) -> Non
 
     assert result.ok is False
     assert result.missing_env_vars == ["CHUTES_API_KEY"]
+
+
+def test_validate_setup_loads_missing_env_vars_from_config_root_dotenv(tmp_path: Path) -> None:
+    """Setup validation should load secrets from ~/.config/LocalFirstClaw/.env."""
+    app_paths = AppPaths.from_environment(
+        home_directory=tmp_path,
+        environment={
+            "XDG_CONFIG_HOME": str(tmp_path / "cfg"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+        },
+    )
+    app_paths.ensure_directories()
+    write_role_based_config(config_root=app_paths.config_root)
+    write_env_file(config_root=app_paths.config_root, content="CHUTES_API_KEY=dotenv-key")
+
+    result = validate_setup(app_paths=app_paths, environment={})
+
+    assert result.ok is True
+    assert result.missing_env_vars == []
 
 
 def test_validate_setup_can_check_providers_without_completion_calls(tmp_path: Path) -> None:
@@ -210,6 +234,29 @@ def test_cli_validate_setup_reports_success(capsys, monkeypatch, tmp_path: Path)
     assert "Agents: coder-relay, coordinator, heartbeat" in captured.out
 
 
+def test_cli_validate_setup_uses_dotenv_without_shell_exports(capsys, monkeypatch, tmp_path: Path) -> None:
+    """The CLI should succeed when secrets exist only in the config-root .env file."""
+    app_paths = AppPaths.from_environment(
+        home_directory=tmp_path,
+        environment={
+            "XDG_CONFIG_HOME": str(tmp_path / "cfg"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+        },
+    )
+    app_paths.ensure_directories()
+    write_role_based_config(config_root=app_paths.config_root)
+    write_env_file(config_root=app_paths.config_root, content="CHUTES_API_KEY=dotenv-key")
+
+    monkeypatch.setattr("localfirstclaw.cli.AppPaths.from_environment", lambda: app_paths)
+    monkeypatch.setattr("localfirstclaw.cli.os.environ", {})
+
+    exit_code = main(["validate-setup"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Setup validation passed." in captured.out
+
+
 def test_cli_check_provider_chutes_reports_success(capsys, monkeypatch) -> None:
     """The CLI should support a zero-token Chutes provider check command."""
 
@@ -245,6 +292,46 @@ def test_cli_check_provider_chutes_reports_success(capsys, monkeypatch) -> None:
     assert exit_code == 0
     assert "Provider check passed for chutes." in captured.out
     assert "Models available: 42" in captured.out
+
+
+def test_cli_check_provider_uses_dotenv_when_shell_is_missing_key(capsys, monkeypatch, tmp_path: Path) -> None:
+    """The provider check command should load CHUTES_API_KEY from the config-root .env file."""
+    app_paths = AppPaths.from_environment(
+        home_directory=tmp_path,
+        environment={
+            "XDG_CONFIG_HOME": str(tmp_path / "cfg"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+        },
+    )
+    app_paths.ensure_directories()
+    write_role_based_config(config_root=app_paths.config_root)
+    write_env_file(config_root=app_paths.config_root, content="CHUTES_API_KEY=dotenv-key")
+
+    def fake_check(*, api_key: str, api_base: str, urlopen=None):
+        """Return a deterministic success result using the dotenv-loaded key."""
+        del urlopen
+        assert api_key == "dotenv-key"
+        return type(
+            "FakeResult",
+            (),
+            {
+                "ok": True,
+                "provider_name": "chutes",
+                "api_base": api_base,
+                "model_count": 47,
+                "error_message": None,
+            },
+        )()
+
+    monkeypatch.setattr("localfirstclaw.cli.AppPaths.from_environment", lambda: app_paths)
+    monkeypatch.setattr("localfirstclaw.cli.check_chutes_connectivity", fake_check)
+    monkeypatch.setattr("localfirstclaw.cli.os.environ", {})
+
+    exit_code = main(["check-provider", "chutes"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Models available: 47" in captured.out
 
 
 def test_cli_describe_plugin_reports_manifest(capsys) -> None:
