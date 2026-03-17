@@ -276,9 +276,9 @@ When another agent is walking a user through Telegram onboarding, it should not 
 
 1. Do you already have a BotFather bot token, or do you need BotFather setup steps?
 2. Have you already sent at least one message to the bot from the Telegram chat or thread you want to bind?
-3. Which channel should this Telegram endpoint map to first, usually `main`?
-4. Should this endpoint allow `@channel` switching, or should it stay fixed to one channel?
-5. After binding, should the agent run one polling pass with `.venv/bin/localfirstclaw run-telegram --once`, or start the continuous runner?
+3. If you want something other than the default `main` channel, which channel should this Telegram endpoint map to?
+4. Should this endpoint use the default channel-switching behavior, or should it stay fixed to one channel with `--fixed-channel`?
+5. After binding, the normal next step is to start the continuous runner with `.venv/bin/localfirstclaw run-telegram`. Only use `--once` as a diagnostic check.
 
 If the user has not yet messaged the bot, the setup agent should pause and ask them to do that before running discovery.
 

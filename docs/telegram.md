@@ -30,8 +30,8 @@ Setup and discovery commands:
 ```bash
 cd /home/openclaw/Projects/LocalFirstClaw
 .venv/bin/localfirstclaw telegram-discover
-.venv/bin/localfirstclaw telegram-bind --endpoint-id telegram-main --binding chat:123456789 --channel main --allow-channel-switching
-.venv/bin/localfirstclaw telegram-onboard --endpoint-id telegram-main --channel main --allow-channel-switching
+.venv/bin/localfirstclaw telegram-bind --endpoint-id telegram-main --binding chat:123456789
+.venv/bin/localfirstclaw telegram-onboard --endpoint-id telegram-main
 ```
 
 ## BotFather Setup
@@ -72,16 +72,30 @@ cd /home/openclaw/Projects/LocalFirstClaw
 
 ```bash
 cd /home/openclaw/Projects/LocalFirstClaw
-.venv/bin/localfirstclaw telegram-bind --endpoint-id telegram-main --binding chat:123456789 --channel main --allow-channel-switching
+.venv/bin/localfirstclaw telegram-bind --endpoint-id telegram-main --binding chat:123456789
 ```
 
-5. Start the runner with `localfirstclaw run-telegram --once` or `localfirstclaw run-telegram`.
+This defaults to:
+
+- primary channel `main`
+- `@channel` switching enabled
+
+If you want a different starting channel, pass `--channel <channel_id>`. If you want the endpoint fixed to one channel, add `--fixed-channel`.
+
+5. Start the continuous runner:
+
+```bash
+cd /home/openclaw/Projects/LocalFirstClaw
+.venv/bin/localfirstclaw run-telegram
+```
+
+Use `--once` only as a diagnostic check.
 
 If you want one command that shows discoveries and then writes the binding you selected, use:
 
 ```bash
 cd /home/openclaw/Projects/LocalFirstClaw
-.venv/bin/localfirstclaw telegram-onboard --endpoint-id telegram-main --channel main --allow-channel-switching
+.venv/bin/localfirstclaw telegram-onboard --endpoint-id telegram-main
 ```
 
 If exactly one chat or thread was discovered, `telegram-onboard` binds it automatically. If multiple candidates were discovered, rerun it with an explicit `--binding` value.
@@ -94,9 +108,9 @@ Minimum question flow:
 
 1. Do you already have a BotFather token, or do you need the BotFather steps?
 2. Have you already sent a Telegram message to the bot from the chat or thread you want to bind?
-3. Which LocalFirstClaw channel should this bind to first, usually `main`?
-4. Should this endpoint allow `@channel` switching?
-5. After binding, should I run one polling pass or start the continuous Telegram runner?
+3. If you want something other than the default `main` channel, which channel should this bind to?
+4. Should this endpoint use the default channel-switching behavior, or should it be fixed with `--fixed-channel`?
+5. After binding, should I start the continuous Telegram runner? `--once` should only be used as a diagnostic pass.
 
 If the user has not yet sent a message to the bot, the agent should ask them to do that before running discovery.
 

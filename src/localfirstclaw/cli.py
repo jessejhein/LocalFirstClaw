@@ -127,17 +127,41 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     telegram_bind_parser.add_argument("--endpoint-id", required=True)
     telegram_bind_parser.add_argument("--binding", required=True)
-    telegram_bind_parser.add_argument("--channel", required=True)
-    telegram_bind_parser.add_argument("--allow-channel-switching", action="store_true")
+    telegram_bind_parser.add_argument("--channel", default="main")
+    telegram_bind_parser.set_defaults(allow_channel_switching=True)
+    telegram_bind_parser.add_argument(
+        "--allow-channel-switching",
+        dest="allow_channel_switching",
+        action="store_true",
+        help="allow @channel switching for this endpoint; enabled by default",
+    )
+    telegram_bind_parser.add_argument(
+        "--fixed-channel",
+        dest="allow_channel_switching",
+        action="store_false",
+        help="keep this endpoint fixed to its primary channel",
+    )
 
     telegram_onboard_parser = subparsers.add_parser(
         "telegram-onboard",
         help="discover Telegram bindings and write the selected endpoint config",
     )
     telegram_onboard_parser.add_argument("--endpoint-id", required=True)
-    telegram_onboard_parser.add_argument("--channel", required=True)
+    telegram_onboard_parser.add_argument("--channel", default="main")
     telegram_onboard_parser.add_argument("--binding")
-    telegram_onboard_parser.add_argument("--allow-channel-switching", action="store_true")
+    telegram_onboard_parser.set_defaults(allow_channel_switching=True)
+    telegram_onboard_parser.add_argument(
+        "--allow-channel-switching",
+        dest="allow_channel_switching",
+        action="store_true",
+        help="allow @channel switching for this endpoint; enabled by default",
+    )
+    telegram_onboard_parser.add_argument(
+        "--fixed-channel",
+        dest="allow_channel_switching",
+        action="store_false",
+        help="keep this endpoint fixed to its primary channel",
+    )
 
     return parser
 
