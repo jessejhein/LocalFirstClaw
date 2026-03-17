@@ -42,6 +42,7 @@ def load_localfirstclaw_config(*, config_root: Path | str) -> LocalFirstClawConf
     model_aliases = {
         alias: LiteLLMModelAlias(alias=alias, **settings) for alias, settings in models_document["aliases"].items()
     }
+    _validate_distinct_agent_and_channel_names(agents=agents, channels=channels)
 
     return LocalFirstClawConfig(
         agents=agents,
@@ -77,3 +78,25 @@ def _load_yaml_document(*, path: Path, top_level_key: str) -> dict[str, Any]:
         raise ValueError(f"config file {path} must define top-level key '{top_level_key}'")
 
     return document
+
+
+def _validate_distinct_agent_and_channel_names(
+    *,
+    agents: dict[str, AgentConfig],
+    channels: dict[str, ChannelConfig],
+) -> None:
+    """
+    Reject overlapping identifiers across the agent and channel namespaces.
+
+    Args:
+        agents: Parsed agent configs keyed by agent id.
+        channels: Parsed channel configs keyed by channel id.
+
+    Raises:
+        ValueError: If any identifier appears as both an agent id and a channel id.
+    """
+    overlapping_names = sorted(set(agents).intersection(channels))
+    if overlapping_names:
+        raise ValueError(
+            "agent ids and channel ids must not overlap; conflicting names: " + ", ".join(overlapping_names)
+        )

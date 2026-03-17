@@ -54,7 +54,7 @@ Recommended use:
 
 ```yaml
 agents:
-  - agent_id: main
+  - agent_id: coordinator
     model: kimi
     system_prompt: You are the main assistant.
   - agent_id: coder
@@ -69,7 +69,7 @@ agents:
 ```yaml
 channels:
   - channel_id: main
-    default_agent_id: main
+    default_agent_id: coordinator
   - channel_id: game
     default_agent_id: coder
 ```
@@ -101,6 +101,22 @@ aliases:
 ```
 
 The `api_key_env` value names the environment variable that should contain the real provider key. The key itself does not belong in the YAML file.
+
+## Naming Constraint
+
+Agent ids and channel ids must be globally distinct.
+
+Current rule:
+
+- an agent cannot have the same name as any channel
+- a channel cannot have the same name as any agent
+
+For example:
+
+- channel `main` with agent `coordinator` is valid
+- channel `main` with agent `main` is rejected
+
+This is a deliberate limitation to prevent ambiguous routing, status output, and operator mistakes.
 
 ## Bootstrap Helpers
 

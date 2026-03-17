@@ -111,6 +111,11 @@ export CHUTES_API_KEY=your-real-key-here
 
 Do not store live API keys in the YAML files.
 
+Naming rule:
+
+- do not give an agent the same identifier as a channel
+- for example, use channel `main` with agent `coordinator`, not agent `main`
+
 ## 6. Smoke Test The Bootstrap Layer
 
 This verifies that config loading and runtime construction work.

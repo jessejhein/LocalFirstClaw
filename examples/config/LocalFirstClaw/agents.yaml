@@ -1,5 +1,5 @@
 agents:
-  - agent_id: main
+  - agent_id: coordinator
     model: kimi
     system_prompt: You are the main assistant.
   - agent_id: coder
