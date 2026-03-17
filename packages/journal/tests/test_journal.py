@@ -6,8 +6,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-
-from journal import Journal, JournalEvent, JournalLevel, JournalQuery, JournalWriteError
+from journal import (
+    Journal,
+    JournalEvent,
+    JournalLevel,
+    JournalQuery,
+    JournalWriteError,
+)
 
 
 def test_append_event_writes_jsonl_record_with_generated_correlation_id(tmp_path: Path) -> None:
