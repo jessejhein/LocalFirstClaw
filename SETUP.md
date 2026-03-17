@@ -209,6 +209,10 @@ These are not setup mistakes. They are current implementation limits:
   Also calls provider metadata endpoints. This should not use completion tokens.
 - `localfirstclaw check-provider chutes`
   Performs a zero-token Chutes reachability check against the `/models` endpoint.
+- `localfirstclaw describe-plugin telegram`
+  Prints the Telegram plugin manifest and config field descriptions.
+- `localfirstclaw plugin-skill telegram`
+  Prints the Telegram plugin's setup and maintenance guidance on demand.
 
 ## Source Of Truth
 

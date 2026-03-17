@@ -22,6 +22,7 @@ dependencies = [
     "agentinterface>=0.1.0",
     "gateway>=0.1.0",
     "journal>=0.1.0",
+    "tools>=0.1.0",
 ]
 
 [project.scripts]

@@ -7,6 +7,8 @@ import argparse
 import os
 from collections.abc import Sequence
 
+from tools import PluginRegistry, TelegramTransportPlugin
+
 from localfirstclaw.apppaths import AppPaths
 from localfirstclaw.providercheck import check_chutes_connectivity
 from localfirstclaw.setupvalidation import validate_setup
@@ -30,6 +32,12 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "check-provider" and args.provider == "chutes":
         return _run_check_provider_chutes(api_base=args.api_base, api_key=args.api_key, api_key_env=args.api_key_env)
+
+    if args.command == "describe-plugin":
+        return _run_describe_plugin(plugin_id=args.plugin_id)
+
+    if args.command == "plugin-skill":
+        return _run_plugin_skill(plugin_id=args.plugin_id)
 
     parser.error("unknown command")
     return 2
@@ -58,6 +66,18 @@ def _build_parser() -> argparse.ArgumentParser:
     check_provider_parser.add_argument("--api-base", default="https://llm.chutes.ai/v1")
     check_provider_parser.add_argument("--api-key")
     check_provider_parser.add_argument("--api-key-env", default="CHUTES_API_KEY")
+
+    describe_plugin_parser = subparsers.add_parser(
+        "describe-plugin",
+        help="print plugin manifest information on demand",
+    )
+    describe_plugin_parser.add_argument("plugin_id", choices=["telegram"])
+
+    plugin_skill_parser = subparsers.add_parser(
+        "plugin-skill",
+        help="print plugin maintenance guidance on demand",
+    )
+    plugin_skill_parser.add_argument("plugin_id", choices=["telegram"])
 
     return parser
 
@@ -114,3 +134,31 @@ def _run_check_provider_chutes(*, api_base: str, api_key: str | None, api_key_en
     print(f"API base: {result.api_base}")
     print(f"Models available: {result.model_count}")
     return 0
+
+
+def _run_describe_plugin(*, plugin_id: str) -> int:
+    """Print the manifest for one registered plugin."""
+    registry = _build_plugin_registry()
+    manifest = registry.describe_plugin(plugin_id=plugin_id)
+    print(f"Plugin: {manifest.plugin_id}")
+    print(f"Display name: {manifest.display_name}")
+    print(f"Summary: {manifest.summary}")
+    print("Capabilities: " + ", ".join(manifest.capabilities))
+    print("Config fields:")
+    for field in manifest.config_fields:
+        default_suffix = "" if field.default_value is None else f" [default={field.default_value}]"
+        required_label = "required" if field.required else "optional"
+        print(f"  - {field.field_name} ({required_label}){default_suffix}: {field.description}")
+    return 0
+
+
+def _run_plugin_skill(*, plugin_id: str) -> int:
+    """Print the maintenance skill text for one registered plugin."""
+    registry = _build_plugin_registry()
+    print(registry.get_plugin_skill(plugin_id=plugin_id))
+    return 0
+
+
+def _build_plugin_registry() -> PluginRegistry:
+    """Construct the current plugin registry."""
+    return PluginRegistry(plugins=[TelegramTransportPlugin()])
